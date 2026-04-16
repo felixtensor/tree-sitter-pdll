@@ -1,0 +1,50 @@
+==================
+Complete Pattern with Constraints and Rewrites
+==================
+Constraint IsNative(op: Op);
+Rewrite NativeRewrite(op: Op) => [{ return someCppFunc(op); }];
+
+Pattern MyPattern with benefit(10), recursion =>
+  let input: Op<"toy.constant">;
+  rewrite input with {
+    let result = op<"toy.add">(input, input);
+    return result;
+  };
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint))))
+  (rewrite_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (string
+      (code_block)))
+  (pattern_decl
+    (identifier)
+    (pattern_metadata
+      (benefit_metadata
+        (integer))
+      (recursion_metadata))
+    (let_statement
+      (identifier)
+      (type_constraint
+        (string))))
+  (rewrite_stmt
+    (identifier)
+    (let_statement
+      (identifier)
+      (op_expr
+        (string)
+        (expression_list
+          (identifier)
+          (identifier))))
+    (return_stmt
+      (identifier))))
