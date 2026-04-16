@@ -6,9 +6,7 @@
       "camelcase": "PDLL",
       "title": "PDLL",
       "scope": "source.pdll",
-      "file-types": [
-        "pdll"
-      ],
+      "file-types": ["pdll"],
       "injection-regex": "^pdll$",
       "class-name": "TreeSitterPdll"
     }
@@ -25,8 +23,7 @@
       }
     ],
     "links": {
-      "repository": "https://github.com/felixtensor/tree-sitter-pdll",
-      "funding": ""
+      "repository": "https://github.com/felixtensor/tree-sitter-pdll"
     }
   },
   "bindings": {
