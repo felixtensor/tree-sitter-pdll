@@ -6,6 +6,8 @@ module.exports = grammar({
     /\s+/
   ],
 
+  word: $ => $.identifier,
+
   rules: {
     source_file: $ => repeat($._statement),
 
@@ -200,8 +202,10 @@ module.exports = grammar({
 
     // `name: Type` used in expression position — for example
     // `erase _: Op;` or `op<>(_: Value, _: ValueRange, _: Value)`.
+    // Also accepts `op` as a variable name, which would otherwise be
+    // shadowed by the `op_expr` keyword.
     variable_def: $ => prec(1, seq(
-      $.identifier,
+      choice($.identifier, alias('op', $.identifier)),
       ':',
       $.type_constraint
     )),
