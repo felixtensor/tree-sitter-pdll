@@ -154,6 +154,10 @@
         {
           "type": "type_expr",
           "named": true
+        },
+        {
+          "type": "variable_def",
+          "named": true
         }
       ]
     }
@@ -193,6 +197,10 @@
         {
           "type": "type_expr",
           "named": true
+        },
+        {
+          "type": "variable_def",
+          "named": true
         }
       ]
     }
@@ -231,6 +239,10 @@
         },
         {
           "type": "type_expr",
+          "named": true
+        },
+        {
+          "type": "variable_def",
           "named": true
         }
       ]
@@ -289,6 +301,10 @@
         },
         {
           "type": "type_expr",
+          "named": true
+        },
+        {
+          "type": "variable_def",
           "named": true
         }
       ]
@@ -380,6 +396,10 @@
         {
           "type": "type_expr",
           "named": true
+        },
+        {
+          "type": "variable_def",
+          "named": true
         }
       ]
     }
@@ -438,6 +458,10 @@
         {
           "type": "type_expr",
           "named": true
+        },
+        {
+          "type": "variable_def",
+          "named": true
         }
       ]
     }
@@ -476,6 +500,10 @@
         },
         {
           "type": "type_expr",
+          "named": true
+        },
+        {
+          "type": "variable_def",
           "named": true
         }
       ]
@@ -548,6 +576,10 @@
         {
           "type": "type_expr",
           "named": true
+        },
+        {
+          "type": "variable_def",
+          "named": true
         }
       ]
     }
@@ -606,6 +638,10 @@
         },
         {
           "type": "type_expr",
+          "named": true
+        },
+        {
+          "type": "variable_def",
           "named": true
         }
       ]
@@ -683,6 +719,10 @@
         {
           "type": "type_expr",
           "named": true
+        },
+        {
+          "type": "variable_def",
+          "named": true
         }
       ]
     }
@@ -735,6 +775,25 @@
       "types": [
         {
           "type": "string",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "variable_def",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "type_constraint",
           "named": true
         }
       ]

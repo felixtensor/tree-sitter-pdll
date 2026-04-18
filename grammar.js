@@ -140,6 +140,7 @@ module.exports = grammar({
     ),
 
     _expression: $ => choice(
+      $.variable_def,
       $.identifier,
       $.call_expr,
       $.op_expr,
@@ -148,6 +149,14 @@ module.exports = grammar({
       $.string,
       $.integer
     ),
+
+    // `name: Type` used in expression position — for example
+    // `erase _: Op;` or `op<>(_: Value, _: ValueRange, _: Value)`.
+    variable_def: $ => prec(1, seq(
+      $.identifier,
+      ':',
+      $.type_constraint
+    )),
 
     call_expr: $ => seq(
       $.identifier,

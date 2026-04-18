@@ -968,6 +968,10 @@
       "members": [
         {
           "type": "SYMBOL",
+          "name": "variable_def"
+        },
+        {
+          "type": "SYMBOL",
           "name": "identifier"
         },
         {
@@ -995,6 +999,27 @@
           "name": "integer"
         }
       ]
+    },
+    "variable_def": {
+      "type": "PREC",
+      "value": 1,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "identifier"
+          },
+          {
+            "type": "STRING",
+            "value": ":"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "type_constraint"
+          }
+        ]
+      }
     },
     "call_expr": {
       "type": "SEQ",
