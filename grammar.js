@@ -97,8 +97,11 @@ module.exports = grammar({
       $.replace_stmt,
       $.rewrite_stmt,
       $.return_stmt,
+      $.not_stmt,
       seq($._expression, ';')
     ),
+
+    not_stmt: $ => seq('not', $._expression, ';'),
 
     let_statement: $ => seq(
       'let',
