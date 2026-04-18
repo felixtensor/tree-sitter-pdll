@@ -82,13 +82,21 @@ module.exports = grammar({
 
     type_constraint: $ => choice(
       seq('Op', optional(seq('<', choice($.identifier, $.string), '>'))),
-      seq('Attr', optional(seq('<', $.type_constraint, '>'))),
-      seq('Type', optional(seq('<', $.type_constraint, '>'))),
-      seq('Value', optional(seq('<', $.type_constraint, '>'))),
-      seq('ValueRange', optional(seq('<', $.type_constraint, '>'))),
-      seq('TypeRange', optional(seq('<', $.type_constraint, '>'))),
+      seq('Attr', optional(seq('<', $._type_constraint_param, '>'))),
+      seq('Type', optional(seq('<', $._type_constraint_param, '>'))),
+      seq('Value', optional(seq('<', $._type_constraint_param, '>'))),
+      seq('ValueRange', optional(seq('<', $._type_constraint_param, '>'))),
+      seq('TypeRange', optional(seq('<', $._type_constraint_param, '>'))),
       seq('[', commaSep($.type_constraint), ']'),
       $.identifier
+    ),
+
+    // Parameter inside `Value<...>`, `TypeRange<...>` etc. — either a
+    // plain type constraint or a named/anonymous variable declaration
+    // like `operandType: Type` or `_: TypeRange`.
+    _type_constraint_param: $ => choice(
+      $.variable_def,
+      $.type_constraint
     ),
 
     _statement_inside_pattern: $ => choice(

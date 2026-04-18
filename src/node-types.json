@@ -824,6 +824,10 @@
         {
           "type": "type_constraint",
           "named": true
+        },
+        {
+          "type": "variable_def",
+          "named": true
         }
       ]
     }

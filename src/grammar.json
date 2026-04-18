@@ -546,7 +546,7 @@
                     },
                     {
                       "type": "SYMBOL",
-                      "name": "type_constraint"
+                      "name": "_type_constraint_param"
                     },
                     {
                       "type": "STRING",
@@ -580,7 +580,7 @@
                     },
                     {
                       "type": "SYMBOL",
-                      "name": "type_constraint"
+                      "name": "_type_constraint_param"
                     },
                     {
                       "type": "STRING",
@@ -614,7 +614,7 @@
                     },
                     {
                       "type": "SYMBOL",
-                      "name": "type_constraint"
+                      "name": "_type_constraint_param"
                     },
                     {
                       "type": "STRING",
@@ -648,7 +648,7 @@
                     },
                     {
                       "type": "SYMBOL",
-                      "name": "type_constraint"
+                      "name": "_type_constraint_param"
                     },
                     {
                       "type": "STRING",
@@ -682,7 +682,7 @@
                     },
                     {
                       "type": "SYMBOL",
-                      "name": "type_constraint"
+                      "name": "_type_constraint_param"
                     },
                     {
                       "type": "STRING",
@@ -746,6 +746,19 @@
         {
           "type": "SYMBOL",
           "name": "identifier"
+        }
+      ]
+    },
+    "_type_constraint_param": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "variable_def"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "type_constraint"
         }
       ]
     },
