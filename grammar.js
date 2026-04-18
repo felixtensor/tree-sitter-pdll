@@ -171,18 +171,18 @@ module.exports = grammar({
       $.integer
     ),
 
-    // Tuple expression: `(a, b)` or `(name = a, b)`. Requires at least two
-    // elements so it doesn't overlap with a parenthesised single expression.
-    tuple_expr: $ => seq(
-      '(',
-      $._tuple_element,
-      ',',
-      commaSep1($._tuple_element),
-      ')'
+    // Tuple expression: `(a, b)`, `(name = a, b)`, or a single named element
+    // `(name = a)`. A single unnamed element would be ambiguous with a
+    // parenthesised expression, so it's excluded.
+    tuple_expr: $ => choice(
+      seq('(', $.named_tuple_element, optional(seq(',', commaSep1($._tuple_element))), ')'),
+      seq('(', $._expression, ',', commaSep1($._tuple_element), ')')
     ),
 
+    named_tuple_element: $ => seq($.identifier, '=', $._expression),
+
     _tuple_element: $ => choice(
-      seq($.identifier, '=', $._expression),
+      $.named_tuple_element,
       $._expression
     ),
 
