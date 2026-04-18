@@ -8,6 +8,7 @@ node_modules/
 
 # Swift artifacts
 .build/
+Package.resolved
 
 # Go artifacts
 _obj/
@@ -33,9 +34,6 @@ dist/
 zig-cache/
 zig-out/
 
-# Example dirs
-/examples/*/
-
 # Grammar volatiles
 *.wasm
 *.obj
@@ -46,3 +44,6 @@ zig-out/
 *.tgz
 *.zip
 *.jar
+
+# Local scratch / reference material
+/tmp/
