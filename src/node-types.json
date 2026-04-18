@@ -93,7 +93,7 @@
     "fields": {},
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
         {
           "type": "argument_list",
@@ -109,6 +109,10 @@
         },
         {
           "type": "code_block",
+          "named": true
+        },
+        {
+          "type": "constraint_decl",
           "named": true
         },
         {
@@ -141,6 +145,10 @@
         },
         {
           "type": "return_stmt",
+          "named": true
+        },
+        {
+          "type": "rewrite_decl",
           "named": true
         },
         {
@@ -425,6 +433,10 @@
           "named": true
         },
         {
+          "type": "constraint_decl",
+          "named": true
+        },
+        {
           "type": "erase_stmt",
           "named": true
         },
@@ -458,6 +470,10 @@
         },
         {
           "type": "return_stmt",
+          "named": true
+        },
+        {
+          "type": "rewrite_decl",
           "named": true
         },
         {
@@ -602,7 +618,7 @@
     "fields": {},
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
         {
           "type": "argument_list",
@@ -618,6 +634,10 @@
         },
         {
           "type": "code_block",
+          "named": true
+        },
+        {
+          "type": "constraint_decl",
           "named": true
         },
         {
@@ -650,6 +670,10 @@
         },
         {
           "type": "return_stmt",
+          "named": true
+        },
+        {
+          "type": "rewrite_decl",
           "named": true
         },
         {
@@ -700,6 +724,10 @@
           "named": true
         },
         {
+          "type": "constraint_decl",
+          "named": true
+        },
+        {
           "type": "erase_stmt",
           "named": true
         },
@@ -729,6 +757,10 @@
         },
         {
           "type": "return_stmt",
+          "named": true
+        },
+        {
+          "type": "rewrite_decl",
           "named": true
         },
         {

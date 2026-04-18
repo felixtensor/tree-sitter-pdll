@@ -12,8 +12,6 @@ module.exports = grammar({
     _statement: $ => choice(
       $.include_directive,
       $.pattern_decl,
-      $.constraint_decl,
-      $.rewrite_decl,
       $._statement_inside_pattern
     ),
 
@@ -45,11 +43,11 @@ module.exports = grammar({
 
     constraint_decl: $ => seq(
       'Constraint',
-      $.identifier,
+      optional($.identifier),
       optional($.argument_list),
       optional(seq('->', choice($.type_constraint, $.tuple_return_type))),
       choice(
-        seq('{', repeat($._statement_inside_pattern), '}'),
+        seq('{', repeat($._statement_inside_pattern), '}', optional(';')),
         seq('=>', $._expression, ';'),
         seq($.code_block, ';'),
         ';'
@@ -58,11 +56,11 @@ module.exports = grammar({
 
     rewrite_decl: $ => seq(
       'Rewrite',
-      $.identifier,
+      optional($.identifier),
       optional($.argument_list),
       optional(seq('->', choice($.type_constraint, $.tuple_return_type))),
       choice(
-        seq('{', repeat($._statement_inside_pattern), '}'),
+        seq('{', repeat($._statement_inside_pattern), '}', optional(';')),
         seq('=>', $._expression, ';'),
         seq($.code_block, ';'),
         ';'
@@ -115,6 +113,8 @@ module.exports = grammar({
       $.rewrite_stmt,
       $.return_stmt,
       $.not_stmt,
+      $.constraint_decl,
+      $.rewrite_decl,
       seq($._expression, ';')
     ),
 
