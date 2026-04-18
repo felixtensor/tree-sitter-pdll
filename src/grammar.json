@@ -1134,6 +1134,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "member_access_expr"
+        },
+        {
+          "type": "SYMBOL",
           "name": "string"
         },
         {
@@ -1141,6 +1145,36 @@
           "name": "integer"
         }
       ]
+    },
+    "member_access_expr": {
+      "type": "PREC_LEFT",
+      "value": 1,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "_expression"
+          },
+          {
+            "type": "STRING",
+            "value": "."
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "identifier"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "integer"
+              }
+            ]
+          }
+        ]
+      }
     },
     "tuple_expr": {
       "type": "CHOICE",

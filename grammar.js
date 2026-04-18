@@ -167,9 +167,21 @@ module.exports = grammar({
       $.attr_expr,
       $.type_expr,
       $.tuple_expr,
+      $.member_access_expr,
       $.string,
       $.integer
     ),
+
+    // Postfix `.name` / `.0` on an expression. Note that because the
+    // identifier lexer accepts `.`, forms like `tuple.firstElt` are still
+    // matched as a single identifier at the token level — this rule covers
+    // cases where a `.` cannot be part of the preceding token, e.g.
+    // `op<my.dialect>.0` or `foo().name`.
+    member_access_expr: $ => prec.left(1, seq(
+      $._expression,
+      '.',
+      choice($.identifier, $.integer)
+    )),
 
     // Tuple expression: `(a, b)`, `(name = a, b)`, or a single named element
     // `(name = a)`. A single unnamed element would be ambiguous with a
