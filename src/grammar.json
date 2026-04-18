@@ -280,6 +280,19 @@
               ]
             },
             {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "code_block"
+                },
+                {
+                  "type": "STRING",
+                  "value": ";"
+                }
+              ]
+            },
+            {
               "type": "STRING",
               "value": ";"
             }
@@ -364,6 +377,19 @@
                 {
                   "type": "SYMBOL",
                   "name": "_expression"
+                },
+                {
+                  "type": "STRING",
+                  "value": ";"
+                }
+              ]
+            },
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "code_block"
                 },
                 {
                   "type": "STRING",

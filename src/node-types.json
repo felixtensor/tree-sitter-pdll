@@ -108,6 +108,10 @@
           "named": true
         },
         {
+          "type": "code_block",
+          "named": true
+        },
+        {
           "type": "erase_stmt",
           "named": true
         },
@@ -495,6 +499,10 @@
         },
         {
           "type": "call_expr",
+          "named": true
+        },
+        {
+          "type": "code_block",
           "named": true
         },
         {

@@ -51,6 +51,7 @@ module.exports = grammar({
       choice(
         seq('{', repeat($._statement_inside_pattern), '}'),
         seq('=>', $._expression, ';'),
+        seq($.code_block, ';'),
         ';'
       )
     ),
@@ -63,6 +64,7 @@ module.exports = grammar({
       choice(
         seq('{', repeat($._statement_inside_pattern), '}'),
         seq('=>', $._expression, ';'),
+        seq($.code_block, ';'),
         ';'
       )
     ),
