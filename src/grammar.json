@@ -1055,12 +1055,20 @@
                   "type": "CHOICE",
                   "members": [
                     {
-                      "type": "SYMBOL",
-                      "name": "identifier"
+                      "type": "CHOICE",
+                      "members": [
+                        {
+                          "type": "SYMBOL",
+                          "name": "identifier"
+                        },
+                        {
+                          "type": "SYMBOL",
+                          "name": "string"
+                        }
+                      ]
                     },
                     {
-                      "type": "SYMBOL",
-                      "name": "string"
+                      "type": "BLANK"
                     }
                   ]
                 },

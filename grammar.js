@@ -165,7 +165,7 @@ module.exports = grammar({
 
     op_expr: $ => seq(
       'op',
-      optional(seq('<', choice($.identifier, $.string), '>')),
+      optional(seq('<', optional(choice($.identifier, $.string)), '>')),
       optional($.expression_list),
       optional(seq('->', choice($.type_constraint, seq('(', commaSep($.type_constraint), ')'))))
     ),
