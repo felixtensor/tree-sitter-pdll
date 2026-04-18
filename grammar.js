@@ -166,8 +166,24 @@ module.exports = grammar({
       $.op_expr,
       $.attr_expr,
       $.type_expr,
+      $.tuple_expr,
       $.string,
       $.integer
+    ),
+
+    // Tuple expression: `(a, b)` or `(name = a, b)`. Requires at least two
+    // elements so it doesn't overlap with a parenthesised single expression.
+    tuple_expr: $ => seq(
+      '(',
+      $._tuple_element,
+      ',',
+      commaSep1($._tuple_element),
+      ')'
+    ),
+
+    _tuple_element: $ => choice(
+      seq($.identifier, '=', $._expression),
+      $._expression
     ),
 
     // `name: Type` used in expression position — for example
