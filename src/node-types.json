@@ -152,6 +152,10 @@
           "named": true
         },
         {
+          "type": "tuple_return_type",
+          "named": true
+        },
+        {
           "type": "type_constraint",
           "named": true
         },
@@ -625,6 +629,10 @@
           "named": true
         },
         {
+          "type": "tuple_return_type",
+          "named": true
+        },
+        {
           "type": "type_constraint",
           "named": true
         },
@@ -800,6 +808,21 @@
       "types": [
         {
           "type": "code_block",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "tuple_return_type",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "argument",
           "named": true
         }
       ]

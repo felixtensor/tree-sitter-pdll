@@ -47,7 +47,7 @@ module.exports = grammar({
       'Constraint',
       $.identifier,
       optional($.argument_list),
-      optional(seq('->', $.type_constraint)),
+      optional(seq('->', choice($.type_constraint, $.tuple_return_type))),
       choice(
         seq('{', repeat($._statement_inside_pattern), '}'),
         seq('=>', $._expression, ';'),
@@ -60,7 +60,7 @@ module.exports = grammar({
       'Rewrite',
       $.identifier,
       optional($.argument_list),
-      optional(seq('->', $.type_constraint)),
+      optional(seq('->', choice($.type_constraint, $.tuple_return_type))),
       choice(
         seq('{', repeat($._statement_inside_pattern), '}'),
         seq('=>', $._expression, ';'),
@@ -78,6 +78,15 @@ module.exports = grammar({
     argument: $ => seq(
       optional(seq($.identifier, ':')),
       $.type_constraint
+    ),
+
+    // Used as a Constraint/Rewrite return signature: `-> (a: Attr, b: Type)`
+    // or `-> (Attr, Type)`. Reuses the same shape as `argument` — a type
+    // constraint with an optional leading `name:`.
+    tuple_return_type: $ => seq(
+      '(',
+      commaSep($.argument),
+      ')'
     ),
 
     type_constraint: $ => choice(
