@@ -47,7 +47,7 @@ module.exports = grammar({
       'Constraint',
       optional($.identifier),
       optional($.argument_list),
-      optional(seq('->', choice($.type_constraint, $.tuple_return_type))),
+      optional(seq('->', $.type_constraint)),
       choice(
         seq('{', repeat($._statement_inside_pattern), '}', optional(';')),
         seq('=>', $._expression, ';'),
@@ -60,7 +60,7 @@ module.exports = grammar({
       'Rewrite',
       optional($.identifier),
       optional($.argument_list),
-      optional(seq('->', choice($.type_constraint, $.tuple_return_type))),
+      optional(seq('->', $.type_constraint)),
       choice(
         seq('{', repeat($._statement_inside_pattern), '}', optional(';')),
         seq('=>', $._expression, ';'),
@@ -76,17 +76,17 @@ module.exports = grammar({
     ),
 
     argument: $ => seq(
-      optional(seq($.identifier, ':')),
+      optional(seq($._identifier_or_keyword, ':')),
       $.type_constraint
     ),
 
-    // Used as a Constraint/Rewrite return signature: `-> (a: Attr, b: Type)`
-    // or `-> (Attr, Type)`. Reuses the same shape as `argument` — a type
-    // constraint with an optional leading `name:`.
-    tuple_return_type: $ => seq(
-      '(',
-      commaSep($.argument),
-      ')'
+    // A plain identifier, or one of the contextual keywords (`op`, `attr`,
+    // `type`) used as a variable name — common in PDLL argument lists.
+    _identifier_or_keyword: $ => choice(
+      $.identifier,
+      alias('op', $.identifier),
+      alias('attr', $.identifier),
+      alias('type', $.identifier)
     ),
 
     type_constraint: $ => choice(
@@ -101,8 +101,19 @@ module.exports = grammar({
       $.identifier
     ),
 
-    // Nested anonymous tuple type, used inside an outer tuple type.
-    tuple_type: $ => prec(-1, seq('(', commaSep($.argument), ')')),
+    // Nested anonymous tuple type. Each element may be an argument-shaped
+    // entry (`name: Type`) or a type/attr literal (`type<"i32">`,
+    // `attr<"10">`).
+    tuple_type: $ => seq('(', commaSep($._tuple_type_element), ')'),
+
+    _tuple_type_element: $ => choice(
+      $.argument,
+      $.type_expr,
+      $.attr_expr,
+      alias('op', $.identifier),
+      alias('attr', $.identifier),
+      alias('type', $.identifier)
+    ),
 
     // Parameter inside `Value<...>`, `TypeRange<...>` etc. — either a
     // plain type constraint or a named/anonymous variable declaration
@@ -237,7 +248,7 @@ module.exports = grammar({
       optional(seq('<', optional(choice($.identifier, $.string)), '>')),
       optional($.expression_list),
       optional($.op_attributes),
-      optional(seq('->', choice($.type_constraint, $.tuple_return_type)))
+      optional(seq('->', $.type_constraint))
     ),
 
     op_attributes: $ => seq(
