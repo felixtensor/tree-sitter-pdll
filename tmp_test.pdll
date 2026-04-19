@@ -1,9 +1,0 @@
-Constraint IsNative(op: Op);
-Rewrite NativeRewrite(op: Op) => [{ return someCppFunc(op); }];
-
-Pattern MyPattern with benefit(10), recursion =>
-  let input: Op<"toy.constant">;
-  rewrite input with {
-    let result = op<"toy.add">(input, input);
-    return result;
-  };
