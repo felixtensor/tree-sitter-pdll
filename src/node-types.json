@@ -602,6 +602,10 @@
           "named": true
         },
         {
+          "type": "tuple_return_type",
+          "named": true
+        },
+        {
           "type": "type_constraint",
           "named": true
         }

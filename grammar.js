@@ -220,7 +220,7 @@ module.exports = grammar({
       optional(seq('<', optional(choice($.identifier, $.string)), '>')),
       optional($.expression_list),
       optional($.op_attributes),
-      optional(seq('->', choice($.type_constraint, seq('(', commaSep($.type_constraint), ')'))))
+      optional(seq('->', choice($.type_constraint, $.tuple_return_type)))
     ),
 
     op_attributes: $ => seq(
