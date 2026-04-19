@@ -1115,6 +1115,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "_keyword_identifier"
+        },
+        {
+          "type": "SYMBOL",
           "name": "call_expr"
         },
         {
@@ -1146,6 +1150,42 @@
           "name": "integer"
         }
       ]
+    },
+    "_keyword_identifier": {
+      "type": "PREC",
+      "value": -1,
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "ALIAS",
+            "content": {
+              "type": "STRING",
+              "value": "op"
+            },
+            "named": true,
+            "value": "identifier"
+          },
+          {
+            "type": "ALIAS",
+            "content": {
+              "type": "STRING",
+              "value": "attr"
+            },
+            "named": true,
+            "value": "identifier"
+          },
+          {
+            "type": "ALIAS",
+            "content": {
+              "type": "STRING",
+              "value": "type"
+            },
+            "named": true,
+            "value": "identifier"
+          }
+        ]
+      }
     },
     "member_access_expr": {
       "type": "PREC_LEFT",

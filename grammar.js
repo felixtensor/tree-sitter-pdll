@@ -164,6 +164,7 @@ module.exports = grammar({
     _expression: $ => choice(
       $.variable_def,
       $.identifier,
+      $._keyword_identifier,
       $.call_expr,
       $.op_expr,
       $.attr_expr,
@@ -173,6 +174,17 @@ module.exports = grammar({
       $.string,
       $.integer
     ),
+
+    // Keywords like `op`, `attr`, `type` double as common variable names
+    // (e.g. `Constraint Foo(attr: Attr)` then `Foo(..., attr, ...)`).
+    // Re-admit them as identifiers when they appear bare in expression
+    // position — i.e. not followed by the syntax that would make them a
+    // keyword use (`<`, `(`, `:`).
+    _keyword_identifier: $ => prec(-1, choice(
+      alias('op', $.identifier),
+      alias('attr', $.identifier),
+      alias('type', $.identifier)
+    )),
 
     // Postfix `.name` / `.0` on an expression. Note that because the
     // identifier lexer accepts `.`, forms like `tuple.firstElt` are still
