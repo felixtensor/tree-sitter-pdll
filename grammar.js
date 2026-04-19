@@ -97,8 +97,12 @@ module.exports = grammar({
       seq('ValueRange', optional(seq('<', $._type_constraint_param, '>'))),
       seq('TypeRange', optional(seq('<', $._type_constraint_param, '>'))),
       seq('[', commaSep($.type_constraint), ']'),
+      $.tuple_type,
       $.identifier
     ),
+
+    // Nested anonymous tuple type, used inside an outer tuple type.
+    tuple_type: $ => prec(-1, seq('(', commaSep($.argument), ')')),
 
     // Parameter inside `Value<...>`, `TypeRange<...>` etc. — either a
     // plain type constraint or a named/anonymous variable declaration
@@ -197,10 +201,11 @@ module.exports = grammar({
       choice($.identifier, $.integer)
     )),
 
-    // Tuple expression: `(a, b)`, `(name = a, b)`, or a single named element
-    // `(name = a)`. A single unnamed element would be ambiguous with a
-    // parenthesised expression, so it's excluded.
+    // Tuple expression: `()`, `(a, b)`, `(name = a, b)`, or a single named
+    // element `(name = a)`. A single *unnamed* element would be ambiguous
+    // with a parenthesised expression, so it's excluded.
     tuple_expr: $ => choice(
+      seq('(', ')'),
       seq('(', $.named_tuple_element, optional(seq(',', commaSep1($._tuple_element))), ')'),
       seq('(', $._expression, ',', commaSep1($._tuple_element), ')')
     ),

@@ -1115,7 +1115,7 @@
     "fields": {},
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
         {
           "type": "attr_expr",
@@ -1180,6 +1180,21 @@
     }
   },
   {
+    "type": "tuple_type",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "argument",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "type_constraint",
     "named": true,
     "fields": {},
@@ -1193,6 +1208,10 @@
         },
         {
           "type": "string",
+          "named": true
+        },
+        {
+          "type": "tuple_type",
           "named": true
         },
         {
