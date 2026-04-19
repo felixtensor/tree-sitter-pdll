@@ -1,5 +1,7 @@
 # tree-sitter-pdll
 
+[![CI](https://github.com/felixtensor/tree-sitter-pdll/actions/workflows/ci.yml/badge.svg)](https://github.com/felixtensor/tree-sitter-pdll/actions/workflows/ci.yml)
+
 [PDLL](https://mlir.llvm.org/docs/PDLL/) grammar for [tree-sitter](https://github.com/tree-sitter/tree-sitter).
 
 ## References
