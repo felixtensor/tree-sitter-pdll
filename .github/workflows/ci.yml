@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - LICENSE
+      - README.md
+      - docs/**
+      - .editorconfig
+      - .gitattributes
+      - .gitignore
+  pull_request:
+    paths-ignore:
+      - LICENSE
+      - README.md
+      - docs/**
+      - .editorconfig
+      - .gitattributes
+      - .gitignore
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test parser
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up tree-sitter
+        uses: tree-sitter/setup-action/cli@v2
+
+      # Tier 1: Corpus tests & Binding tests
+      - name: Run parser and binding tests
+        uses: tree-sitter/parser-test-action@v3
+        with:
+          test-rust: true
+          test-node: true
+          node-version: "22"
+          test-python: true
+          test-go: true
+          test-swift: true
+          test-zig: true
+
+      # Tier 2: Examples tests (no ERROR nodes) — informational for now
+      # Using continue-on-error because the parser doesn't yet pass all
+      # official PDLL tests. Remove continue-on-error once pass rate is 100%.
+      - name: Parse examples
+        uses: tree-sitter/parse-action@v4
+        id: parse-files
+        with:
+          files: examples/**/*.pdll
