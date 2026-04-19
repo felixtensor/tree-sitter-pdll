@@ -1,0 +1,224 @@
+==================
+op: identifier name
+==================
+Pattern {
+  erase op<foo.bar>;
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (identifier)))))
+
+==================
+op: string name
+==================
+Pattern {
+  erase op<"foo.bar">;
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (string)))))
+
+==================
+op: empty angle
+==================
+Pattern {
+  erase op<>;
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr))))
+
+==================
+op: with operands
+==================
+Pattern {
+  let x: Op;
+  erase op<foo.bar>(x);
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (erase_stmt
+      (op_expr
+        (identifier)
+        (expression_list
+          (identifier))))))
+
+==================
+op: empty operand list
+==================
+Pattern {
+  erase op<>() -> ();
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (expression_list)
+        (type_constraint
+          (tuple_type))))))
+
+==================
+op: multiple operands
+==================
+Pattern {
+  erase op<>(_: Value, _: ValueRange, _: Value);
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (expression_list
+          (variable_def
+            (identifier)
+            (type_constraint))
+          (variable_def
+            (identifier)
+            (type_constraint))
+          (variable_def
+            (identifier)
+            (type_constraint)))))))
+
+==================
+op: with named attribute
+==================
+Pattern {
+  erase op<foo.bar> {unitAttr};
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (identifier)
+        (op_attributes
+          (op_attribute
+            (identifier)))))))
+
+==================
+op: with valued attribute
+==================
+Pattern {
+  erase op<foo.bar> {k = attr<"1">};
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (identifier)
+        (op_attributes
+          (op_attribute
+            (identifier)
+            (attr_expr
+              (string))))))))
+
+==================
+op: with string-keyed attribute
+==================
+Pattern {
+  erase op<foo.bar> {"some.key" = _: Attr};
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (identifier)
+        (op_attributes
+          (op_attribute
+            (string)
+            (variable_def
+              (identifier)
+              (type_constraint))))))))
+
+==================
+op: with result types
+==================
+Pattern {
+  erase op<foo.bar> -> (_: Type, _: TypeRange);
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (identifier)
+        (type_constraint
+          (tuple_type
+            (argument
+              (identifier)
+              (type_constraint))
+            (argument
+              (identifier)
+              (type_constraint))))))))
+
+==================
+op: all components
+==================
+Pattern {
+  let x: Op;
+  erase op<foo.bar>(x) {k = attr<"1">} -> (_: Type);
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (erase_stmt
+      (op_expr
+        (identifier)
+        (expression_list
+          (identifier))
+        (op_attributes
+          (op_attribute
+            (identifier)
+            (attr_expr
+              (string))))
+        (type_constraint
+          (tuple_type
+            (argument
+              (identifier)
+              (type_constraint))))))))
+
+==================
+op: nested as operand
+==================
+Pattern {
+  erase op<outer>(op<inner>);
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (identifier)
+        (expression_list
+          (op_expr
+            (identifier)))))))

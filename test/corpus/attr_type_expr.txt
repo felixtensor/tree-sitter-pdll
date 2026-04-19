@@ -1,0 +1,122 @@
+==================
+attr: simple integer
+==================
+Pattern {
+  let a = attr<"10">;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (attr_expr
+        (string)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+attr: typed integer
+==================
+Pattern {
+  let a = attr<"10: i32">;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (attr_expr
+        (string)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+attr: unit
+==================
+Pattern {
+  let a = attr<"unit">;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (attr_expr
+        (string)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+type: builtin
+==================
+Pattern {
+  let t = type<"i64">;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_expr
+        (string)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+type: tensor
+==================
+Pattern {
+  let t = type<"tensor<10xi32>">;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_expr
+        (string)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+attr and type: in op attributes and results
+==================
+Pattern {
+  erase op<foo.bar> {k = attr<"1">} -> (type<"i64">);
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (identifier)
+        (op_attributes
+          (op_attribute
+            (identifier)
+            (attr_expr
+              (string))))
+        (type_constraint
+          (tuple_type
+            (type_expr
+              (string))))))))

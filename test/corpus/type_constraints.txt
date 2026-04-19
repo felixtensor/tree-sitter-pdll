@@ -1,0 +1,195 @@
+==================
+type: bare Op
+==================
+Constraint Foo() -> Op;
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (type_constraint)))
+
+==================
+type: Op with string name
+==================
+Constraint Foo() -> Op<"toy.add">;
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (type_constraint
+      (string))))
+
+==================
+type: Op with identifier name
+==================
+Constraint Foo() -> Op<foo.bar>;
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (type_constraint
+      (identifier))))
+
+==================
+type: bare Attr
+==================
+Constraint Foo() -> Attr;
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (type_constraint)))
+
+==================
+type: bare Type
+==================
+Constraint Foo() -> Type;
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (type_constraint)))
+
+==================
+type: bare Value
+==================
+Constraint Foo() -> Value;
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (type_constraint)))
+
+==================
+type: bare ValueRange
+==================
+Constraint Foo() -> ValueRange;
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (type_constraint)))
+
+==================
+type: bare TypeRange
+==================
+Constraint Foo() -> TypeRange;
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (type_constraint)))
+
+==================
+type: Value parametrized
+==================
+Pattern {
+  let x: Value<_: Type>;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint
+        (variable_def
+          (identifier)
+          (type_constraint))))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+type: user-defined constraint identifier
+==================
+Constraint IsFoo(arg: Value);
+
+Constraint UsesFoo(x: IsFoo);
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint))))
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint
+          (identifier))))))
+
+==================
+type: list with multiple constraints
+==================
+Pattern {
+  let x: [Attr, Attr];
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint
+        (type_constraint)
+        (type_constraint)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+type: tuple named
+==================
+Constraint Foo() -> (a: Value, b: Attr);
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (type_constraint
+      (tuple_type
+        (argument
+          (identifier)
+          (type_constraint))
+        (argument
+          (identifier)
+          (type_constraint))))))
+
+==================
+type: tuple empty
+==================
+Constraint Foo() -> ();
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (type_constraint
+      (tuple_type))))

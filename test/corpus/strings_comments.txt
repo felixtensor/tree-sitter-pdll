@@ -1,0 +1,102 @@
+==================
+string: plain quoted
+==================
+#include "foo.td"
+---
+
+(source_file
+  (include_directive
+    (string)))
+
+==================
+string: empty quoted
+==================
+#include ""
+---
+
+(source_file
+  (include_directive
+    (string)))
+
+==================
+string: as code block via include
+==================
+#include [{ raw }]
+---
+
+(source_file
+  (include_directive
+    (string
+      (code_block))))
+
+==================
+code_block: as constraint body
+==================
+Constraint Foo() [{ return isFoo(); }];
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (code_block)))
+
+==================
+code_block: containing braces and keywords
+==================
+Rewrite Bar() [{
+  if (cond) { doThing(); }
+  return result;
+}];
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list)
+    (code_block)))
+
+==================
+comment: top-level
+==================
+// file header
+#include "foo.td"
+---
+
+(source_file
+  (comment)
+  (include_directive
+    (string)))
+
+==================
+comment: between statements
+==================
+Pattern {
+  // comment between stmts
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (comment)
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+comment: trailing after statement
+==================
+Pattern {
+  erase _: Op; // trailing
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))
+    (comment)))

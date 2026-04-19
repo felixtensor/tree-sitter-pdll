@@ -1,0 +1,83 @@
+==================
+error: missing semicolon after erase
+:error
+==================
+Pattern { erase _: Op }
+---
+
+==================
+error: pattern body missing brace
+:error
+==================
+Pattern }
+---
+
+==================
+error: pattern with metadata no identifier
+:error
+==================
+Pattern with {}
+---
+
+==================
+error: benefit missing open paren
+:error
+==================
+Pattern with benefit) {}
+---
+
+==================
+error: let with number instead of name
+:error
+==================
+Pattern { let 5; }
+---
+
+==================
+error: erase with no expression
+:error
+==================
+Pattern { erase; }
+---
+
+==================
+error: let type constraint missing close angle
+:error
+==================
+Pattern { let foo: Attr<_: Type{}; }
+---
+
+==================
+error: unclosed code block
+:error
+==================
+Constraint Cst() [{
+---
+
+==================
+error: unclosed double-quoted string
+:error
+==================
+Constraint Cst() "
+---
+
+==================
+error: unknown directive
+:error
+==================
+#foo
+---
+
+==================
+error: include with angle instead of string
+:error
+==================
+#include <>
+---
+
+==================
+error: native constraint missing terminator
+:error
+==================
+Constraint Foo() [{}]
+---

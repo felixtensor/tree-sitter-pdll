@@ -1,0 +1,135 @@
+==================
+rewrite: forward decl
+==================
+Rewrite Bar();
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list)))
+
+==================
+rewrite: forward decl with args
+==================
+Rewrite Bar(a: Value, b: Attr);
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint))
+      (argument
+        (identifier)
+        (type_constraint)))))
+
+==================
+rewrite: native code block
+==================
+Rewrite Bar(op: Op) [{ return someFn(op); }];
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (code_block)))
+
+==================
+rewrite: lambda body
+==================
+Rewrite Bar(inputs: ValueRange) => op<my.foo>(inputs);
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (op_expr
+      (identifier)
+      (expression_list
+        (identifier)))))
+
+==================
+rewrite: compound body
+==================
+Rewrite Bar(x: Op) {
+  erase x;
+}
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (erase_stmt
+      (identifier))))
+
+==================
+rewrite: result type
+==================
+Rewrite Bar() -> Op;
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list)
+    (type_constraint)))
+
+==================
+rewrite: result type with lambda body
+==================
+Rewrite Bar(a: Op) -> Op => a;
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (type_constraint)
+    (identifier)))
+
+==================
+rewrite: tuple result type
+==================
+Rewrite Bar() -> (a: Value, b: Attr);
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list)
+    (type_constraint
+      (tuple_type
+        (argument
+          (identifier)
+          (type_constraint))
+        (argument
+          (identifier)
+          (type_constraint))))))
+
+==================
+rewrite: anonymous, no name
+==================
+Rewrite() {};
+---
+
+(source_file
+  (rewrite_decl
+    (argument_list)))

@@ -1,0 +1,137 @@
+==================
+erase: identifier
+==================
+Pattern {
+  let x: Op;
+  erase x;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (erase_stmt
+      (identifier))))
+
+==================
+erase: anonymous variable def
+==================
+Pattern {
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+erase: op expression
+==================
+Pattern {
+  erase op<foo.bar>;
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (identifier)))))
+
+==================
+return: no value
+==================
+Constraint Foo() {
+  return;
+}
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (return_stmt)))
+
+==================
+return: identifier
+==================
+Constraint Foo(a: Value) -> Value {
+  return a;
+}
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (type_constraint)
+    (return_stmt
+      (identifier))))
+
+==================
+return: tuple
+==================
+Constraint Foo() -> (x: Value, y: Attr) {
+  return (_: Value, attr<"10">);
+}
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (type_constraint
+      (tuple_type
+        (argument
+          (identifier)
+          (type_constraint))
+        (argument
+          (identifier)
+          (type_constraint))))
+    (return_stmt
+      (tuple_expr
+        (variable_def
+          (identifier)
+          (type_constraint))
+        (attr_expr
+          (string))))))
+
+==================
+not: call expression
+==================
+Constraint IsFoo(op: Op);
+
+Pattern {
+  let x: Op;
+  not IsFoo(x);
+  erase x;
+}
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint))))
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (not_stmt
+      (call_expr
+        (identifier)
+        (expression_list
+          (identifier))))
+    (erase_stmt
+      (identifier))))

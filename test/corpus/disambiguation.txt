@@ -1,0 +1,258 @@
+==================
+disambig: op as argument name
+==================
+Constraint Foo(op: Op);
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))))
+
+==================
+disambig: attr as argument name
+==================
+Constraint Foo(attr: Attr);
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))))
+
+==================
+disambig: type as argument name
+==================
+Constraint Foo(type: Type);
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))))
+
+==================
+disambig: op as bare identifier in expression
+==================
+Constraint Foo(op: Op) => op;
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (op_expr)))
+
+==================
+disambig: attr as bare identifier in expression
+==================
+Constraint Foo(attr: Attr) => attr;
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (identifier)))
+
+==================
+disambig: type as bare identifier in expression
+==================
+Constraint Foo(type: Type) => type;
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (identifier)))
+
+==================
+disambig: op/attr/type as call arguments
+==================
+Constraint Baz(a: Op, b: Attr, c: Type);
+
+Constraint Foo(op: Op, attr: Attr, type: Type) {
+  Baz(op, attr, type);
+}
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint))
+      (argument
+        (identifier)
+        (type_constraint))
+      (argument
+        (identifier)
+        (type_constraint))))
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint))
+      (argument
+        (identifier)
+        (type_constraint))
+      (argument
+        (identifier)
+        (type_constraint)))
+    (call_expr
+      (identifier)
+      (expression_list
+        (op_expr)
+        (identifier)
+        (identifier)))))
+
+==================
+disambig: named op result types
+==================
+Pattern {
+  erase op<> -> (name: Type, names: TypeRange);
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (type_constraint
+          (tuple_type
+            (argument
+              (identifier)
+              (type_constraint))
+            (argument
+              (identifier)
+              (type_constraint))))))))
+
+==================
+disambig: empty tuple expression
+==================
+Pattern {
+  let t = ();
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (tuple_expr))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+disambig: nested tuple expression
+==================
+Pattern {
+  let v: Value;
+  let inner = (_: Attr, v);
+  let outer = (first = inner, v);
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (let_statement
+      (identifier)
+      (tuple_expr
+        (variable_def
+          (identifier)
+          (type_constraint))
+        (identifier)))
+    (let_statement
+      (identifier)
+      (tuple_expr
+        (named_tuple_element
+          (identifier)
+          (identifier))
+        (identifier)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+disambig: empty tuple as constraint result
+==================
+Constraint Foo() -> ();
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (type_constraint
+      (tuple_type))))
+
+==================
+disambig: op expression string vs identifier name
+==================
+Pattern {
+  let a = op<"toy.add">;
+  let b = op<toy.add>;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (op_expr
+        (string)))
+    (let_statement
+      (identifier)
+      (op_expr
+        (identifier)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+disambig: op as variable in expression (not op<>)
+==================
+Pattern {
+  let op: Op;
+  erase op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (erase_stmt
+      (op_expr))))

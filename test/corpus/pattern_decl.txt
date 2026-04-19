@@ -1,0 +1,126 @@
+==================
+pattern: anonymous, single stmt body
+==================
+Pattern { erase _: Op; }
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+pattern: named
+==================
+Pattern Foo { erase _: Op; }
+---
+
+(source_file
+  (pattern_decl
+    (identifier)
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+pattern: benefit metadata
+==================
+Pattern Foo with benefit(10) { erase _: Op; }
+---
+
+(source_file
+  (pattern_decl
+    (identifier)
+    (pattern_metadata
+      (benefit_metadata
+        (integer)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+pattern: recursion metadata
+==================
+Pattern Foo with recursion { erase _: Op; }
+---
+
+(source_file
+  (pattern_decl
+    (identifier)
+    (pattern_metadata
+      (recursion_metadata))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+pattern: benefit and recursion
+==================
+Pattern Foo with benefit(5), recursion { erase _: Op; }
+---
+
+(source_file
+  (pattern_decl
+    (identifier)
+    (pattern_metadata
+      (benefit_metadata
+        (integer))
+      (recursion_metadata))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+pattern: lambda body
+==================
+Pattern Foo => erase _: Op;
+---
+
+(source_file
+  (pattern_decl
+    (identifier)
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+pattern: lambda body with metadata
+==================
+Pattern Foo with benefit(1) => erase _: Op;
+---
+
+(source_file
+  (pattern_decl
+    (identifier)
+    (pattern_metadata
+      (benefit_metadata
+        (integer)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+pattern: multi-statement body
+==================
+Pattern Foo {
+  let x: Op;
+  erase x;
+}
+---
+
+(source_file
+  (pattern_decl
+    (identifier)
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (erase_stmt
+      (identifier))))

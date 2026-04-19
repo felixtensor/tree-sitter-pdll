@@ -1,0 +1,22 @@
+==================
+include: single td header
+==================
+#include "ops.td"
+---
+
+(source_file
+  (include_directive
+    (string)))
+
+==================
+include: multiple directives
+==================
+#include "ops.td"
+#include "rules.pdll"
+---
+
+(source_file
+  (include_directive
+    (string))
+  (include_directive
+    (string)))

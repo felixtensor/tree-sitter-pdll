@@ -1,0 +1,115 @@
+==================
+replace: op with op
+==================
+Pattern {
+  let x: Op;
+  replace x with op<foo.bar>;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (replace_stmt
+      (identifier)
+      (op_expr
+        (identifier)))))
+
+==================
+replace: identifier with call
+==================
+Pattern {
+  let x: Op;
+  replace x with MakeNew(x);
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (replace_stmt
+      (identifier)
+      (call_expr
+        (identifier)
+        (expression_list
+          (identifier))))))
+
+==================
+rewrite: with compound body
+==================
+Pattern {
+  let x: Op;
+  rewrite x with {
+    erase x;
+  };
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (rewrite_stmt
+      (identifier)
+      (erase_stmt
+        (identifier)))))
+
+==================
+rewrite: with named rewrite identifier
+==================
+Rewrite Bar(x: Op);
+
+Pattern {
+  let x: Op;
+  rewrite x with Bar;
+}
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint))))
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (rewrite_stmt
+      (identifier)
+      (identifier))))
+
+==================
+rewrite: compound body with multiple stmts
+==================
+Pattern {
+  let x: Op;
+  rewrite x with {
+    let y = op<foo.bar>(x);
+    replace x with y;
+  };
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (rewrite_stmt
+      (identifier)
+      (let_statement
+        (identifier)
+        (op_expr
+          (identifier)
+          (expression_list
+            (identifier))))
+      (replace_stmt
+        (identifier)
+        (identifier)))))

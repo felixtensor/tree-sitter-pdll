@@ -1,0 +1,145 @@
+==================
+constraint: forward decl
+==================
+Constraint Foo();
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)))
+
+==================
+constraint: forward decl with single arg
+==================
+Constraint Foo(arg: Value);
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))))
+
+==================
+constraint: forward decl with multiple args
+==================
+Constraint Foo(a: Value, b: Attr);
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint))
+      (argument
+        (identifier)
+        (type_constraint)))))
+
+==================
+constraint: native code block
+==================
+Constraint Foo() [{ return true; }];
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (code_block)))
+
+==================
+constraint: lambda body
+==================
+Constraint Foo(a: Attr) => a;
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (identifier)))
+
+==================
+constraint: compound body
+==================
+Constraint Foo(x: Value) {
+  erase _: Op;
+}
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+constraint: result type
+==================
+Constraint Foo() -> Attr;
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (type_constraint)))
+
+==================
+constraint: result type with lambda body
+==================
+Constraint Foo(arg: Value) -> Value => arg;
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (type_constraint)
+    (identifier)))
+
+==================
+constraint: tuple result type
+==================
+Constraint Foo() -> (x: Value, y: Attr);
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (type_constraint
+      (tuple_type
+        (argument
+          (identifier)
+          (type_constraint))
+        (argument
+          (identifier)
+          (type_constraint))))))
+
+==================
+constraint: anonymous, no name
+==================
+Constraint() {};
+---
+
+(source_file
+  (constraint_decl
+    (argument_list)))

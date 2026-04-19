@@ -1,0 +1,249 @@
+==================
+call: no args
+==================
+Rewrite Make() => op<foo.bar>;
+
+Pattern {
+  let x: Op;
+  rewrite x with { replace x with Make(); };
+}
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list)
+    (op_expr
+      (identifier)))
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (rewrite_stmt
+      (identifier)
+      (replace_stmt
+        (identifier)
+        (call_expr
+          (identifier)
+          (expression_list))))))
+
+==================
+call: with args
+==================
+Rewrite Make(a: Op, b: Op) => op<foo.bar>;
+
+Pattern {
+  let x: Op;
+  rewrite x with { replace x with Make(x, x); };
+}
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint))
+      (argument
+        (identifier)
+        (type_constraint)))
+    (op_expr
+      (identifier)))
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (rewrite_stmt
+      (identifier)
+      (replace_stmt
+        (identifier)
+        (call_expr
+          (identifier)
+          (expression_list
+            (identifier)
+            (identifier)))))))
+
+==================
+tuple: empty
+==================
+Pattern {
+  let t = ();
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (tuple_expr))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+tuple: two unnamed
+==================
+Pattern {
+  let a: Attr;
+  let b: Attr;
+  let t = (a, b);
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (let_statement
+      (identifier)
+      (tuple_expr
+        (identifier)
+        (identifier)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+tuple: single named
+==================
+Pattern {
+  let t = (first = _: Attr);
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (tuple_expr
+        (named_tuple_element
+          (identifier)
+          (variable_def
+            (identifier)
+            (type_constraint)))))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+tuple: named and unnamed mixed
+==================
+Pattern {
+  let v: Value;
+  let t = (first = _: Attr, v);
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (let_statement
+      (identifier)
+      (tuple_expr
+        (named_tuple_element
+          (identifier)
+          (variable_def
+            (identifier)
+            (type_constraint)))
+        (identifier)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+member: integer index after op
+==================
+Pattern {
+  let x = op<foo.bar>.0;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (member_access_expr
+        (op_expr
+          (identifier))
+        (integer)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+member: identifier after call
+==================
+Rewrite Make() => op<foo.bar>;
+
+Pattern {
+  let x = Make().result;
+  erase _: Op;
+}
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list)
+    (op_expr
+      (identifier)))
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (member_access_expr
+        (call_expr
+          (identifier)
+          (expression_list))
+        (identifier)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+member: integer index after tuple
+==================
+Pattern {
+  let a: Attr;
+  let b: Attr;
+  let y = (a, b).0;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (let_statement
+      (identifier)
+      (member_access_expr
+        (tuple_expr
+          (identifier)
+          (identifier))
+        (integer)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))

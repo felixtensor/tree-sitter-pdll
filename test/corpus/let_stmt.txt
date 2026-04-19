@@ -1,0 +1,138 @@
+==================
+let: bare declaration
+==================
+Pattern { let x; erase _: Op; }
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+let: typed only
+==================
+Pattern { let x: Op; erase x; }
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (erase_stmt
+      (identifier))))
+
+==================
+let: initialized only
+==================
+Pattern {
+  let x = op<foo.bar>;
+  erase x;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (op_expr
+        (identifier)))
+    (erase_stmt
+      (identifier))))
+
+==================
+let: typed and initialized
+==================
+Pattern {
+  let x: Op = op<foo.bar>;
+  erase x;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint)
+      (op_expr
+        (identifier)))
+    (erase_stmt
+      (identifier))))
+
+==================
+let: constrained op type
+==================
+Pattern { let x: Op<"toy.add">; erase x; }
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint
+        (string)))
+    (erase_stmt
+      (identifier))))
+
+==================
+let: list type constraint
+==================
+Pattern { let x: [Attr, Attr]; erase _: Op; }
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint
+        (type_constraint)
+        (type_constraint)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+let: attr init
+==================
+Pattern {
+  let a = attr<"10: i32">;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (attr_expr
+        (string)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+let: type init
+==================
+Pattern {
+  let t = type<"i64">;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_expr
+        (string)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
