@@ -45,5 +45,12 @@ zig-out/
 *.zip
 *.jar
 
-# Local scratch / reference material
-/tmp/
+# ide files
+.idea/
+.cursor/
+.vscode/
+.trae/
+.zed/
+
+# temporary files
+tmp/
