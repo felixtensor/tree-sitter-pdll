@@ -284,10 +284,13 @@ module.exports = grammar({
 
     code_block: $ => seq(
       '[{',
-      repeat(choice(
-        /[^\]]/,
-        seq(']', /[^}]/)
-      )),
+      alias(
+        repeat(choice(
+          /[^\]]/,
+          seq(']', /[^}]/)
+        )),
+        $.code_block_content
+      ),
       '}]'
     ),
 

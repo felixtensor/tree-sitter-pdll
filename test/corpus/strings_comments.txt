@@ -27,7 +27,8 @@ string: as code block via include
 (source_file
   (include_directive
     (string
-      (code_block))))
+      (code_block
+        (code_block_content)))))
 
 ==================
 code_block: as constraint body
@@ -39,7 +40,8 @@ Constraint Foo() [{ return isFoo(); }];
   (constraint_decl
     (identifier)
     (argument_list)
-    (code_block)))
+    (code_block
+      (code_block_content))))
 
 ==================
 code_block: containing braces and keywords
@@ -54,7 +56,8 @@ Rewrite Bar() [{
   (rewrite_decl
     (identifier)
     (argument_list)
-    (code_block)))
+    (code_block
+      (code_block_content))))
 
 ==================
 comment: top-level

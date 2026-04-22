@@ -85,6 +85,21 @@
   {
     "type": "code_block",
     "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "code_block_content",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "code_block_content",
+    "named": true,
     "fields": {}
   },
   {

@@ -39,7 +39,8 @@ Rewrite Bar(op: Op) [{ return someFn(op); }];
       (argument
         (identifier)
         (type_constraint)))
-    (code_block)))
+    (code_block
+      (code_block_content))))
 
 ==================
 rewrite: lambda body

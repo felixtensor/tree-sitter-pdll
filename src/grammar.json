@@ -1761,29 +1761,34 @@
           "value": "[{"
         },
         {
-          "type": "REPEAT",
+          "type": "ALIAS",
           "content": {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "PATTERN",
-                "value": "[^\\]]"
-              },
-              {
-                "type": "SEQ",
-                "members": [
-                  {
-                    "type": "STRING",
-                    "value": "]"
-                  },
-                  {
-                    "type": "PATTERN",
-                    "value": "[^}]"
-                  }
-                ]
-              }
-            ]
-          }
+            "type": "REPEAT",
+            "content": {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "PATTERN",
+                  "value": "[^\\]]"
+                },
+                {
+                  "type": "SEQ",
+                  "members": [
+                    {
+                      "type": "STRING",
+                      "value": "]"
+                    },
+                    {
+                      "type": "PATTERN",
+                      "value": "[^}]"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "named": true,
+          "value": "code_block_content"
         },
         {
           "type": "STRING",

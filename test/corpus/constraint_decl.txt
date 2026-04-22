@@ -50,7 +50,8 @@ Constraint Foo() [{ return true; }];
   (constraint_decl
     (identifier)
     (argument_list)
-    (code_block)))
+    (code_block
+      (code_block_content))))
 
 ==================
 constraint: lambda body
