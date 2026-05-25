@@ -14,4 +14,7 @@ concurrency:
 jobs:
   regenerate:
     uses: tree-sitter/workflows/.github/workflows/regenerate.yml@main
-    if: github.actor == 'dependabot[bot]'
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    with:
+      # tree-sitter@0.25.0 fails to build its Node binding under Node 24.
+      node-version: "22"
