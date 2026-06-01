@@ -174,10 +174,10 @@ Constraint Foo() -> (a: Value, b: Attr);
     (argument_list)
     (type_constraint
       (tuple_type
-        (argument
+        (named_type_constraint
           (identifier)
           (type_constraint))
-        (argument
+        (named_type_constraint
           (identifier)
           (type_constraint))))))
 

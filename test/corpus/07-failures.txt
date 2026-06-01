@@ -1,0 +1,227 @@
+==================
+directive failure: unknown directive
+:error
+==================
+#foo
+---
+
+==================
+directive failure: include with angle filename
+:error
+==================
+#include <>
+---
+
+==================
+string failure: unclosed code block
+:error
+==================
+Constraint Cst() [{
+---
+
+==================
+string failure: unclosed double-quoted string
+:error
+==================
+Constraint Cst() "
+---
+
+==================
+pattern failure: missing body
+:error
+==================
+Pattern }
+---
+
+==================
+pattern failure: metadata missing identifier
+:error
+==================
+Pattern with {}
+---
+
+==================
+pattern failure: benefit missing open paren
+:error
+==================
+Pattern with benefit) {}
+---
+
+==================
+pattern failure: lambda expression statement
+:error
+==================
+Pattern => op<>;
+---
+
+==================
+stmt failure: top-level expression
+:error
+==================
+10
+---
+
+==================
+stmt failure: top-level let statement
+:error
+==================
+let x: Value;
+---
+
+==================
+stmt failure: missing semicolon after erase
+:error
+==================
+Pattern { erase _: Op }
+---
+
+==================
+stmt failure: let with number instead of name
+:error
+==================
+Pattern { let 5; }
+---
+
+==================
+stmt failure: erase with no expression
+:error
+==================
+Pattern { erase; }
+---
+
+==================
+stmt failure: let type constraint missing close angle
+:error
+==================
+Pattern { let foo: Attr<_: Type{}; }
+---
+
+==================
+constraint failure: missing name
+:error
+==================
+Constraint() {};
+---
+
+==================
+constraint failure: missing argument list
+:error
+==================
+Constraint Foo;
+---
+
+==================
+constraint failure: unnamed argument
+:error
+==================
+Constraint Foo(Value);
+---
+
+==================
+constraint failure: argument missing colon
+:error
+==================
+Constraint Foo(arg{}
+---
+
+==================
+constraint failure: argument list missing close paren
+:error
+==================
+Constraint Foo(arg: Value{}
+---
+
+==================
+constraint failure: result list missing close paren
+:error
+==================
+Constraint Foo() -> (Op{};
+---
+
+==================
+constraint failure: native declaration missing semicolon
+:error
+==================
+Constraint Foo() [{}]
+---
+
+==================
+constraint failure: top-level compound trailing semicolon
+:error
+==================
+Constraint Foo() {};
+---
+
+==================
+constraint failure: inline statement missing semicolon
+:error
+==================
+Constraint Outer() {
+  Constraint() {}
+}
+---
+
+==================
+rewrite failure: missing name
+:error
+==================
+Rewrite() {};
+---
+
+==================
+rewrite failure: missing argument list
+:error
+==================
+Rewrite Bar;
+---
+
+==================
+rewrite failure: unnamed argument
+:error
+==================
+Rewrite Bar(Value);
+---
+
+==================
+rewrite failure: argument missing colon
+:error
+==================
+Rewrite Bar(arg{}
+---
+
+==================
+rewrite failure: argument list missing close paren
+:error
+==================
+Rewrite Bar(arg: Value{}
+---
+
+==================
+rewrite failure: result list missing close paren
+:error
+==================
+Rewrite Bar() -> (Op{};
+---
+
+==================
+rewrite failure: native declaration missing semicolon
+:error
+==================
+Rewrite Bar() [{}]
+---
+
+==================
+rewrite failure: top-level compound trailing semicolon
+:error
+==================
+Rewrite Bar() {};
+---
+
+==================
+rewrite failure: inline statement missing semicolon
+:error
+==================
+Rewrite Outer() {
+  Rewrite() {}
+}
+---

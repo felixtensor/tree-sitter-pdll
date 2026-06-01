@@ -1,0 +1,711 @@
+==================
+attr: simple integer
+==================
+Pattern {
+  let a = attr<"10">;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (attr_expr
+        (string)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+attr: typed integer
+==================
+Pattern {
+  let a = attr<"10: i32">;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (attr_expr
+        (string)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+attr: unit
+==================
+Pattern {
+  let a = attr<"unit">;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (attr_expr
+        (string)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+type: builtin
+==================
+Pattern {
+  let t = type<"i64">;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_expr
+        (string)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+type: tensor
+==================
+Pattern {
+  let t = type<"tensor<10xi32>">;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_expr
+        (string)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+attr and type: in op attributes and results
+==================
+Pattern {
+  erase op<foo.bar> {k = attr<"1">} -> (type<"i64">);
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (identifier)
+        (op_attributes
+          (op_attribute
+            (identifier)
+            (attr_expr
+              (string))))
+        (type_constraint
+          (tuple_type
+            (type_expr
+              (string))))))))
+
+==================
+op: identifier name
+==================
+Pattern {
+  erase op<foo.bar>;
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (identifier)))))
+
+==================
+op: string name
+==================
+Pattern {
+  erase op<"foo.bar">;
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (string)))))
+
+==================
+op: empty angle
+==================
+Pattern {
+  erase op<>;
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr))))
+
+==================
+op: with operands
+==================
+Pattern {
+  let x: Op;
+  erase op<foo.bar>(x);
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (erase_stmt
+      (op_expr
+        (identifier)
+        (expression_list
+          (identifier))))))
+
+==================
+op: empty operand list
+==================
+Pattern {
+  erase op<>() -> ();
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (expression_list)
+        (type_constraint
+          (tuple_type))))))
+
+==================
+op: multiple operands
+==================
+Pattern {
+  erase op<>(_: Value, _: ValueRange, _: Value);
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (expression_list
+          (variable_def
+            (identifier)
+            (type_constraint))
+          (variable_def
+            (identifier)
+            (type_constraint))
+          (variable_def
+            (identifier)
+            (type_constraint)))))))
+
+==================
+op: with named attribute
+==================
+Pattern {
+  erase op<foo.bar> {unitAttr};
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (identifier)
+        (op_attributes
+          (op_attribute
+            (identifier)))))))
+
+==================
+op: with valued attribute
+==================
+Pattern {
+  erase op<foo.bar> {k = attr<"1">};
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (identifier)
+        (op_attributes
+          (op_attribute
+            (identifier)
+            (attr_expr
+              (string))))))))
+
+==================
+op: with string-keyed attribute
+==================
+Pattern {
+  erase op<foo.bar> {"some.key" = _: Attr};
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (identifier)
+        (op_attributes
+          (op_attribute
+            (string)
+            (variable_def
+              (identifier)
+              (type_constraint))))))))
+
+==================
+op: with result types
+==================
+Pattern {
+  erase op<foo.bar> -> (_: Type, _: TypeRange);
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (identifier)
+        (type_constraint
+          (tuple_type
+            (named_type_constraint
+              (identifier)
+              (type_constraint))
+            (named_type_constraint
+              (identifier)
+              (type_constraint))))))))
+
+==================
+op: all components
+==================
+Pattern {
+  let x: Op;
+  erase op<foo.bar>(x) {k = attr<"1">} -> (_: Type);
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (erase_stmt
+      (op_expr
+        (identifier)
+        (expression_list
+          (identifier))
+        (op_attributes
+          (op_attribute
+            (identifier)
+            (attr_expr
+              (string))))
+        (type_constraint
+          (tuple_type
+            (named_type_constraint
+              (identifier)
+              (type_constraint))))))))
+
+==================
+op: nested as operand
+==================
+Pattern {
+  erase op<outer>(op<inner>);
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (identifier)
+        (expression_list
+          (op_expr
+            (identifier)))))))
+
+==================
+call: no args
+==================
+Rewrite Make() => op<foo.bar>;
+
+Pattern {
+  let x: Op;
+  rewrite x with { replace x with Make(); };
+}
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list)
+    (op_expr
+      (identifier)))
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (rewrite_stmt
+      (identifier)
+      (replace_stmt
+        (identifier)
+        (call_expr
+          (identifier)
+          (expression_list))))))
+
+==================
+call: with args
+==================
+Rewrite Make(a: Op, b: Op) => op<foo.bar>;
+
+Pattern {
+  let x: Op;
+  rewrite x with { replace x with Make(x, x); };
+}
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint))
+      (argument
+        (identifier)
+        (type_constraint)))
+    (op_expr
+      (identifier)))
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (rewrite_stmt
+      (identifier)
+      (replace_stmt
+        (identifier)
+        (call_expr
+          (identifier)
+          (expression_list
+            (identifier)
+            (identifier)))))))
+
+==================
+tuple: empty
+==================
+Pattern {
+  let t = ();
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (tuple_expr))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+tuple: two unnamed
+==================
+Pattern {
+  let a: Attr;
+  let b: Attr;
+  let t = (a, b);
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (let_statement
+      (identifier)
+      (tuple_expr
+        (identifier)
+        (identifier)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+tuple: single named
+==================
+Pattern {
+  let t = (first = _: Attr);
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (tuple_expr
+        (named_tuple_element
+          (identifier)
+          (variable_def
+            (identifier)
+            (type_constraint)))))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+tuple: named and unnamed mixed
+==================
+Pattern {
+  let v: Value;
+  let t = (first = _: Attr, v);
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (let_statement
+      (identifier)
+      (tuple_expr
+        (named_tuple_element
+          (identifier)
+          (variable_def
+            (identifier)
+            (type_constraint)))
+        (identifier)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+member: integer index after op
+==================
+Pattern {
+  let x = op<foo.bar>.0;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (member_access_expr
+        (op_expr
+          (identifier))
+        (integer)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+member: identifier after call
+==================
+Rewrite Make() => op<foo.bar>;
+
+Pattern {
+  let x = Make().result;
+  erase _: Op;
+}
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list)
+    (op_expr
+      (identifier)))
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (member_access_expr
+        (call_expr
+          (identifier)
+          (expression_list))
+        (identifier)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+member: integer index after tuple
+==================
+Pattern {
+  let a: Attr;
+  let b: Attr;
+  let y = (a, b).0;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (let_statement
+      (identifier)
+      (member_access_expr
+        (tuple_expr
+          (identifier)
+          (identifier))
+        (integer)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+inline constraint: compound body invocation
+==================
+Constraint Outer(input: Value) {
+  Constraint(value: Value) {
+    let copy = value;
+  }(input);
+}
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (call_expr
+      (constraint_decl
+        (argument_list
+          (argument
+            (identifier)
+            (type_constraint)))
+        (let_statement
+          (identifier)
+          (identifier)))
+      (expression_list
+        (identifier)))))
+
+==================
+inline constraint: documented native body invocation
+==================
+Constraint Outer(input: Value) {
+  Constraint(value: Value) [{
+    return success();
+  }](input);
+}
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (call_expr
+      (constraint_decl
+        (argument_list
+          (argument
+            (identifier)
+            (type_constraint)))
+        (code_block
+          (code_block_content)))
+      (expression_list
+        (identifier)))))
+
+==================
+inline rewrite: compound body invocation
+==================
+Rewrite Outer(input: Value) {
+  Rewrite(value: Value) {
+    let copy = value;
+  }(input);
+}
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (call_expr
+      (rewrite_decl
+        (argument_list
+          (argument
+            (identifier)
+            (type_constraint)))
+        (let_statement
+          (identifier)
+          (identifier)))
+      (expression_list
+        (identifier)))))
+
+==================
+inline rewrite: documented native body invocation
+==================
+Rewrite Outer(input: Value) {
+  Rewrite(value: Value) [{
+    return;
+  }](input);
+}
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (call_expr
+      (rewrite_decl
+        (argument_list
+          (argument
+            (identifier)
+            (type_constraint)))
+        (code_block
+          (code_block_content)))
+      (expression_list
+        (identifier)))))

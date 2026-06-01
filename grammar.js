@@ -65,7 +65,8 @@ module.exports = grammar({
     ),
 
     argument: $ => seq(
-      optional(seq($._identifier_or_keyword, ':')),
+      $._identifier_or_keyword,
+      ':',
       $.type_constraint
     ),
 
@@ -96,7 +97,8 @@ module.exports = grammar({
     tuple_type: $ => seq('(', commaSep($._tuple_type_element), ')'),
 
     _tuple_type_element: $ => choice(
-      $.argument,
+      $.named_type_constraint,
+      $.type_constraint,
       $.type_expr,
       $.attr_expr,
       alias('op', $.identifier),
@@ -230,6 +232,12 @@ module.exports = grammar({
       ':',
       $.type_constraint
     )),
+
+    named_type_constraint: $ => seq(
+      $._identifier_or_keyword,
+      ':',
+      $.type_constraint
+    ),
 
     call_expr: $ => prec(PREC.call, seq(
       choice(

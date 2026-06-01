@@ -446,25 +446,12 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SEQ",
-              "members": [
-                {
-                  "type": "SYMBOL",
-                  "name": "_identifier_or_keyword"
-                },
-                {
-                  "type": "STRING",
-                  "value": ":"
-                }
-              ]
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
+          "type": "SYMBOL",
+          "name": "_identifier_or_keyword"
+        },
+        {
+          "type": "STRING",
+          "value": ":"
         },
         {
           "type": "SYMBOL",
@@ -831,7 +818,11 @@
       "members": [
         {
           "type": "SYMBOL",
-          "name": "argument"
+          "name": "named_type_constraint"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "type_constraint"
         },
         {
           "type": "SYMBOL",
@@ -1447,6 +1438,23 @@
           }
         ]
       }
+    },
+    "named_type_constraint": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_identifier_or_keyword"
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "type_constraint"
+        }
+      ]
     },
     "call_expr": {
       "type": "PREC",

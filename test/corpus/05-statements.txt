@@ -1,0 +1,392 @@
+==================
+let: bare declaration
+==================
+Pattern { let x; erase _: Op; }
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+let: typed only
+==================
+Pattern { let x: Op; erase x; }
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (erase_stmt
+      (identifier))))
+
+==================
+let: initialized only
+==================
+Pattern {
+  let x = op<foo.bar>;
+  erase x;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (op_expr
+        (identifier)))
+    (erase_stmt
+      (identifier))))
+
+==================
+let: typed and initialized
+==================
+Pattern {
+  let x: Op = op<foo.bar>;
+  erase x;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint)
+      (op_expr
+        (identifier)))
+    (erase_stmt
+      (identifier))))
+
+==================
+let: constrained op type
+==================
+Pattern { let x: Op<"toy.add">; erase x; }
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint
+        (string)))
+    (erase_stmt
+      (identifier))))
+
+==================
+let: list type constraint
+==================
+Pattern { let x: [Attr, Attr]; erase _: Op; }
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint
+        (type_constraint)
+        (type_constraint)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+let: attr init
+==================
+Pattern {
+  let a = attr<"10: i32">;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (attr_expr
+        (string)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+let: type init
+==================
+Pattern {
+  let t = type<"i64">;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_expr
+        (string)))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+erase: identifier
+==================
+Pattern {
+  let x: Op;
+  erase x;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (erase_stmt
+      (identifier))))
+
+==================
+erase: anonymous variable def
+==================
+Pattern {
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+erase: op expression
+==================
+Pattern {
+  erase op<foo.bar>;
+}
+---
+
+(source_file
+  (pattern_decl
+    (erase_stmt
+      (op_expr
+        (identifier)))))
+
+==================
+return: no value
+==================
+Constraint Foo() {
+  return;
+}
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (return_stmt)))
+
+==================
+return: identifier
+==================
+Constraint Foo(a: Value) -> Value {
+  return a;
+}
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (type_constraint)
+    (return_stmt
+      (identifier))))
+
+==================
+return: tuple
+==================
+Constraint Foo() -> (x: Value, y: Attr) {
+  return (_: Value, attr<"10">);
+}
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (type_constraint
+      (tuple_type
+        (named_type_constraint
+          (identifier)
+          (type_constraint))
+        (named_type_constraint
+          (identifier)
+          (type_constraint))))
+    (return_stmt
+      (tuple_expr
+        (variable_def
+          (identifier)
+          (type_constraint))
+        (attr_expr
+          (string))))))
+
+==================
+not: call expression
+==================
+Constraint IsFoo(op: Op);
+
+Pattern {
+  let x: Op;
+  not IsFoo(x);
+  erase x;
+}
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint))))
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (not_stmt
+      (call_expr
+        (identifier)
+        (expression_list
+          (identifier))))
+    (erase_stmt
+      (identifier))))
+
+==================
+replace: op with op
+==================
+Pattern {
+  let x: Op;
+  replace x with op<foo.bar>;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (replace_stmt
+      (identifier)
+      (op_expr
+        (identifier)))))
+
+==================
+replace: identifier with call
+==================
+Pattern {
+  let x: Op;
+  replace x with MakeNew(x);
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (replace_stmt
+      (identifier)
+      (call_expr
+        (identifier)
+        (expression_list
+          (identifier))))))
+
+==================
+rewrite: with compound body
+==================
+Pattern {
+  let x: Op;
+  rewrite x with {
+    erase x;
+  };
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (rewrite_stmt
+      (identifier)
+      (erase_stmt
+        (identifier)))))
+
+==================
+rewrite: with named rewrite identifier
+==================
+Rewrite Bar(x: Op);
+
+Pattern {
+  let x: Op;
+  rewrite x with Bar;
+}
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint))))
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (rewrite_stmt
+      (identifier)
+      (identifier))))
+
+==================
+rewrite: compound body with multiple stmts
+==================
+Pattern {
+  let x: Op;
+  rewrite x with {
+    let y = op<foo.bar>(x);
+    replace x with y;
+  };
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (rewrite_stmt
+      (identifier)
+      (let_statement
+        (identifier)
+        (op_expr
+          (identifier)
+          (expression_list
+            (identifier))))
+      (replace_stmt
+        (identifier)
+        (identifier)))))
