@@ -81,3 +81,77 @@ error: native constraint missing terminator
 ==================
 Constraint Foo() [{}]
 ---
+
+==================
+error: constraint declaration missing argument list
+:error
+==================
+Constraint Foo;
+---
+
+==================
+error: rewrite declaration missing argument list
+:error
+==================
+Rewrite Bar;
+---
+
+==================
+error: top-level let statement
+:error
+==================
+let x: Value;
+---
+
+==================
+error: top-level anonymous constraint
+:error
+==================
+Constraint() {};
+---
+
+==================
+error: top-level anonymous rewrite
+:error
+==================
+Rewrite() {};
+---
+
+==================
+error: pattern lambda expression statement
+:error
+==================
+Pattern => op<>;
+---
+
+==================
+error: top-level constraint compound trailing semicolon
+:error
+==================
+Constraint Foo() {};
+---
+
+==================
+error: top-level rewrite compound trailing semicolon
+:error
+==================
+Rewrite Bar() {};
+---
+
+==================
+error: inline constraint statement missing semicolon
+:error
+==================
+Constraint Outer() {
+  Constraint() {}
+}
+---
+
+==================
+error: inline rewrite statement missing semicolon
+:error
+==================
+Rewrite Outer() {
+  Rewrite() {}
+}
+---

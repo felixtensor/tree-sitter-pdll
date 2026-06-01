@@ -1,3 +1,7 @@
+const PREC = {
+  call: 1,
+};
+
 module.exports = grammar({
   name: 'pdll',
 
@@ -9,12 +13,13 @@ module.exports = grammar({
   word: $ => $.identifier,
 
   rules: {
-    source_file: $ => repeat($._statement),
+    source_file: $ => repeat($._top_level_statement),
 
-    _statement: $ => choice(
+    _top_level_statement: $ => choice(
       $.include_directive,
       $.pattern_decl,
-      $._statement_inside_pattern
+      $.constraint_decl,
+      $.rewrite_decl
     ),
 
     include_directive: $ => seq(
@@ -28,7 +33,7 @@ module.exports = grammar({
       optional($.pattern_metadata),
       choice(
         seq('{', repeat($._statement_inside_pattern), '}'),
-        seq('=>', $._statement_inside_pattern)
+        seq('=>', $._operation_rewrite_statement)
       )
     ),
 
@@ -44,29 +49,13 @@ module.exports = grammar({
     recursion_metadata: $ => 'recursion',
 
     constraint_decl: $ => seq(
-      'Constraint',
-      optional($.identifier),
-      optional($.argument_list),
-      optional(seq('->', $.type_constraint)),
-      choice(
-        seq('{', repeat($._statement_inside_pattern), '}', optional(';')),
-        seq('=>', $._expression, ';'),
-        seq($.code_block, ';'),
-        ';'
-      )
+      user_decl_signature($, 'Constraint', $.identifier),
+      top_level_user_decl_body($)
     ),
 
     rewrite_decl: $ => seq(
-      'Rewrite',
-      optional($.identifier),
-      optional($.argument_list),
-      optional(seq('->', $.type_constraint)),
-      choice(
-        seq('{', repeat($._statement_inside_pattern), '}', optional(';')),
-        seq('=>', $._expression, ';'),
-        seq($.code_block, ';'),
-        ';'
-      )
+      user_decl_signature($, 'Rewrite', $.identifier),
+      top_level_user_decl_body($)
     ),
 
     argument_list: $ => seq(
@@ -125,14 +114,18 @@ module.exports = grammar({
 
     _statement_inside_pattern: $ => choice(
       $.let_statement,
-      $.erase_stmt,
-      $.replace_stmt,
-      $.rewrite_stmt,
+      $._operation_rewrite_statement,
       $.return_stmt,
       $.not_stmt,
-      $.constraint_decl,
-      $.rewrite_decl,
+      alias($._inline_constraint_statement_decl, $.constraint_decl),
+      alias($._inline_rewrite_statement_decl, $.rewrite_decl),
       seq($._expression, ';')
+    ),
+
+    _operation_rewrite_statement: $ => choice(
+      $.erase_stmt,
+      $.replace_stmt,
+      $.rewrite_stmt
     ),
 
     not_stmt: $ => seq('not', $._expression, ';'),
@@ -238,7 +231,7 @@ module.exports = grammar({
       $.type_constraint
     )),
 
-    call_expr: $ => prec(1, seq(
+    call_expr: $ => prec(PREC.call, seq(
       choice(
         $.identifier,
         alias($._inline_constraint_decl, $.constraint_decl),
@@ -247,27 +240,29 @@ module.exports = grammar({
       $.expression_list
     )),
 
-    _inline_constraint_decl: $ => prec(1, seq(
-      'Constraint',
-      optional($.identifier),
-      optional($.argument_list),
-      optional(seq('->', $.type_constraint)),
-      choice(
-        seq('{', repeat($._statement_inside_pattern), '}'),
-        $.code_block
-      )
+    // Inline declarations can be used as callable expressions:
+    //   Constraint(value: Value) { ... }(value)
+    // These variants stop at the end of the declaration body and let call_expr
+    // consume the following argument list.
+    _inline_constraint_decl: $ => prec(PREC.call, seq(
+      user_decl_signature($, 'Constraint'),
+      inline_callable_user_decl_body($)
     )),
 
-    _inline_rewrite_decl: $ => prec(1, seq(
-      'Rewrite',
-      optional($.identifier),
-      optional($.argument_list),
-      optional(seq('->', $.type_constraint)),
-      choice(
-        seq('{', repeat($._statement_inside_pattern), '}'),
-        $.code_block
-      )
+    _inline_rewrite_decl: $ => prec(PREC.call, seq(
+      user_decl_signature($, 'Rewrite'),
+      inline_callable_user_decl_body($)
     )),
+
+    _inline_constraint_statement_decl: $ => seq(
+      user_decl_signature($, 'Constraint'),
+      inline_statement_user_decl_body($)
+    ),
+
+    _inline_rewrite_statement_decl: $ => seq(
+      user_decl_signature($, 'Rewrite'),
+      inline_statement_user_decl_body($)
+    ),
 
     op_expr: $ => seq(
       'op',
@@ -339,4 +334,41 @@ function commaSep(rule) {
 
 function commaSep1(rule) {
   return seq(rule, repeat(seq(',', rule)));
+}
+
+function user_decl_signature($, keyword, name = optional($.identifier)) {
+  return seq(
+    keyword,
+    name,
+    $.argument_list,
+    optional(seq('->', $.type_constraint))
+  );
+}
+
+function user_decl_block($) {
+  return seq('{', repeat($._statement_inside_pattern), '}');
+}
+
+function top_level_user_decl_body($) {
+  return choice(
+    user_decl_block($),
+    seq('=>', $._expression, ';'),
+    seq($.code_block, ';'),
+    ';'
+  );
+}
+
+function inline_statement_user_decl_body($) {
+  return choice(
+    seq(user_decl_block($), ';'),
+    seq('=>', $._expression, ';'),
+    seq($.code_block, ';')
+  );
+}
+
+function inline_callable_user_decl_body($) {
+  return choice(
+    user_decl_block($),
+    $.code_block
+  );
 }

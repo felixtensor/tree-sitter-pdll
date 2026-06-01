@@ -126,11 +126,16 @@ Rewrite Bar() -> (a: Value, b: Attr);
           (type_constraint))))))
 
 ==================
-rewrite: anonymous, no name
+rewrite: inline anonymous, no name
 ==================
-Rewrite() {};
+Rewrite Outer() {
+  Rewrite() {};
+}
 ---
 
 (source_file
   (rewrite_decl
-    (argument_list)))
+    (identifier)
+    (argument_list)
+    (rewrite_decl
+      (argument_list))))

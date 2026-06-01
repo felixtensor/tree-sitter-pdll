@@ -136,11 +136,16 @@ Constraint Foo() -> (x: Value, y: Attr);
           (type_constraint))))))
 
 ==================
-constraint: anonymous, no name
+constraint: inline anonymous, no name
 ==================
-Constraint() {};
+Constraint Outer() {
+  Constraint() {};
+}
 ---
 
 (source_file
   (constraint_decl
-    (argument_list)))
+    (identifier)
+    (argument_list)
+    (constraint_decl
+      (argument_list))))
