@@ -238,10 +238,36 @@ module.exports = grammar({
       $.type_constraint
     )),
 
-    call_expr: $ => seq(
-      $.identifier,
+    call_expr: $ => prec(1, seq(
+      choice(
+        $.identifier,
+        alias($._inline_constraint_decl, $.constraint_decl),
+        alias($._inline_rewrite_decl, $.rewrite_decl)
+      ),
       $.expression_list
-    ),
+    )),
+
+    _inline_constraint_decl: $ => prec(1, seq(
+      'Constraint',
+      optional($.identifier),
+      optional($.argument_list),
+      optional(seq('->', $.type_constraint)),
+      choice(
+        seq('{', repeat($._statement_inside_pattern), '}'),
+        $.code_block
+      )
+    )),
+
+    _inline_rewrite_decl: $ => prec(1, seq(
+      'Rewrite',
+      optional($.identifier),
+      optional($.argument_list),
+      optional(seq('->', $.type_constraint)),
+      choice(
+        seq('{', repeat($._statement_inside_pattern), '}'),
+        $.code_block
+      )
+    )),
 
     op_expr: $ => seq(
       'op',

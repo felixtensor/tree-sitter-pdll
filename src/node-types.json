@@ -72,11 +72,19 @@
       "required": true,
       "types": [
         {
+          "type": "constraint_decl",
+          "named": true
+        },
+        {
           "type": "expression_list",
           "named": true
         },
         {
           "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "rewrite_decl",
           "named": true
         }
       ]
