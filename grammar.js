@@ -1,5 +1,6 @@
 const PREC = {
   call: 1,
+  replacement_list: 2,
 };
 
 module.exports = grammar({
@@ -79,13 +80,37 @@ module.exports = grammar({
       alias('type', $.identifier)
     ),
 
+    _identifier_or_any_keyword: $ => choice(
+      $.identifier,
+      alias('attr', $.identifier),
+      alias('Attr', $.identifier),
+      alias('erase', $.identifier),
+      alias('let', $.identifier),
+      alias('Constraint', $.identifier),
+      alias('not', $.identifier),
+      alias('op', $.identifier),
+      alias('Op', $.identifier),
+      alias('OpName', $.identifier),
+      alias('Pattern', $.identifier),
+      alias('replace', $.identifier),
+      alias('return', $.identifier),
+      alias('rewrite', $.identifier),
+      alias('Rewrite', $.identifier),
+      alias('type', $.identifier),
+      alias('Type', $.identifier),
+      alias('TypeRange', $.identifier),
+      alias('Value', $.identifier),
+      alias('ValueRange', $.identifier),
+      alias('with', $.identifier)
+    ),
+
     type_constraint: $ => choice(
-      seq('Op', optional(seq('<', choice($.identifier, $.string), '>'))),
-      seq('Attr', optional(seq('<', $._type_constraint_param, '>'))),
-      seq('Type', optional(seq('<', $._type_constraint_param, '>'))),
-      seq('Value', optional(seq('<', $._type_constraint_param, '>'))),
-      seq('ValueRange', optional(seq('<', $._type_constraint_param, '>'))),
-      seq('TypeRange', optional(seq('<', $._type_constraint_param, '>'))),
+      seq('Op', optional(seq('<', $.op_name, '>'))),
+      seq('Attr', optional(seq('<', $._expression, '>'))),
+      'Type',
+      seq('Value', optional(seq('<', $._expression, '>'))),
+      seq('ValueRange', optional(seq('<', $._expression, '>'))),
+      'TypeRange',
       seq('[', commaSep($.type_constraint), ']'),
       $.tuple_type,
       $.identifier
@@ -106,19 +131,10 @@ module.exports = grammar({
       alias('type', $.identifier)
     ),
 
-    // Parameter inside `Value<...>`, `TypeRange<...>` etc. — either a
-    // plain type constraint or a named/anonymous variable declaration
-    // like `operandType: Type` or `_: TypeRange`.
-    _type_constraint_param: $ => choice(
-      $.variable_def,
-      $.type_constraint
-    ),
-
     _statement_inside_pattern: $ => choice(
       $.let_statement,
       $._operation_rewrite_statement,
       $.return_stmt,
-      $.not_stmt,
       alias($._inline_constraint_statement_decl, $.constraint_decl),
       alias($._inline_rewrite_statement_decl, $.rewrite_decl),
       seq($._expression, ';')
@@ -130,11 +146,15 @@ module.exports = grammar({
       $.rewrite_stmt
     ),
 
-    not_stmt: $ => seq('not', $._expression, ';'),
+    negated_call_expr: $ => seq(
+      'not',
+      $.identifier,
+      $.expression_list
+    ),
 
     let_statement: $ => seq(
       'let',
-      $.identifier,
+      $._identifier_or_keyword,
       optional(seq(':', $.type_constraint)),
       optional(seq('=', $._expression)),
       ';'
@@ -150,24 +170,41 @@ module.exports = grammar({
       'replace',
       $._expression,
       'with',
-      $._expression,
+      choice($.replacement_list, $._replacement_expression),
       ';'
     ),
+
+    _replacement_expression: $ => choice(
+      $.variable_def,
+      $.identifier,
+      $._keyword_identifier,
+      $.negated_call_expr,
+      $.call_expr,
+      $.op_expr,
+      $.attr_expr,
+      $.type_expr,
+      $.member_access_expr,
+      $.string,
+      $.integer
+    ),
+
+    replacement_list: $ => prec(PREC.replacement_list, seq(
+      '(',
+      commaSep1($._expression),
+      ')'
+    )),
 
     rewrite_stmt: $ => seq(
       'rewrite',
       $._expression,
       'with',
-      choice(
-        seq('{', repeat($._statement_inside_pattern), '}'),
-        $.identifier
-      ),
+      seq('{', repeat($._statement_inside_pattern), '}'),
       ';'
     ),
 
     return_stmt: $ => seq(
       'return',
-      optional($._expression),
+      $._expression,
       ';'
     ),
 
@@ -175,6 +212,7 @@ module.exports = grammar({
       $.variable_def,
       $.identifier,
       $._keyword_identifier,
+      $.negated_call_expr,
       $.call_expr,
       $.op_expr,
       $.attr_expr,
@@ -197,26 +235,17 @@ module.exports = grammar({
     )),
 
     // Postfix `.name` / `.0` on an expression. Note that because the
-    // identifier lexer accepts `.`, forms like `tuple.firstElt` are still
-    // matched as a single identifier at the token level — this rule covers
-    // cases where a `.` cannot be part of the preceding token, e.g.
-    // `op<my.dialect>.0` or `foo().name`.
+    // operator itself is not part of identifiers, so normal member accesses
+    // such as `tuple.firstElt`, `op.0`, and `foo().name` share this rule.
     member_access_expr: $ => prec.left(1, seq(
       $._expression,
       '.',
       choice($.identifier, $.integer)
     )),
 
-    // Tuple expression: `()`, `(a, b)`, `(name = a, b)`, or a single named
-    // element `(name = a)`. A single *unnamed* element would be ambiguous
-    // with a parenthesised expression, so it's excluded.
-    tuple_expr: $ => choice(
-      seq('(', ')'),
-      seq('(', $.named_tuple_element, optional(seq(',', commaSep1($._tuple_element))), ')'),
-      seq('(', $._expression, ',', commaSep1($._tuple_element), ')')
-    ),
+    tuple_expr: $ => seq('(', commaSep($._tuple_element), ')'),
 
-    named_tuple_element: $ => seq($.identifier, '=', $._expression),
+    named_tuple_element: $ => seq($._identifier_or_keyword, '=', $._expression),
 
     _tuple_element: $ => choice(
       $.named_tuple_element,
@@ -228,7 +257,7 @@ module.exports = grammar({
     // Also accepts `op` as a variable name, which would otherwise be
     // shadowed by the `op_expr` keyword.
     variable_def: $ => prec(1, seq(
-      choice($.identifier, alias('op', $.identifier)),
+      $._identifier_or_keyword,
       ':',
       $.type_constraint
     )),
@@ -274,10 +303,24 @@ module.exports = grammar({
 
     op_expr: $ => seq(
       'op',
-      optional(seq('<', optional(choice($.identifier, $.string)), '>')),
+      '<',
+      optional($.op_name),
+      '>',
       optional($.expression_list),
       optional($.op_attributes),
-      optional(seq('->', $.type_constraint))
+      optional($.operation_result_list)
+    ),
+
+    op_name: $ => choice(
+      seq($._identifier_or_any_keyword, repeat(seq('.', $._identifier_or_any_keyword))),
+      $.string
+    ),
+
+    operation_result_list: $ => seq(
+      '->',
+      '(',
+      commaSep($._expression),
+      ')'
     ),
 
     op_attributes: $ => seq(
@@ -323,12 +366,12 @@ module.exports = grammar({
       '}]'
     ),
 
-    identifier: $ => /[a-zA-Z_][a-zA-Z0-9_$.-]*/,
+    identifier: $ => /[a-zA-Z_][a-zA-Z0-9_]*/,
     
     integer: $ => /[0-9]+/,
 
     string: $ => choice(
-      seq('"', /[^"\n]*/, '"'),
+      seq('"', repeat(choice(/[^"\\\n]/, /\\(["\\nt]|[0-9a-fA-F]{2})/)), '"'),
       $.code_block
     ),
 

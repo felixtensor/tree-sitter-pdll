@@ -41,7 +41,9 @@ Pattern {
     (let_statement
       (identifier)
       (op_expr
-        (identifier)))
+        (op_name
+          (identifier)
+          (identifier))))
     (erase_stmt
       (identifier))))
 
@@ -60,7 +62,9 @@ Pattern {
       (identifier)
       (type_constraint)
       (op_expr
-        (identifier)))
+        (op_name
+          (identifier)
+          (identifier))))
     (erase_stmt
       (identifier))))
 
@@ -75,7 +79,8 @@ Pattern { let x: Op<"toy.add">; erase x; }
     (let_statement
       (identifier)
       (type_constraint
-        (string)))
+        (op_name
+          (string))))
     (erase_stmt
       (identifier))))
 
@@ -181,21 +186,9 @@ Pattern {
   (pattern_decl
     (erase_stmt
       (op_expr
-        (identifier)))))
-
-==================
-return: no value
-==================
-Constraint Foo() {
-  return;
-}
----
-
-(source_file
-  (constraint_decl
-    (identifier)
-    (argument_list)
-    (return_stmt)))
+        (op_name
+          (identifier)
+          (identifier))))))
 
 ==================
 return: identifier
@@ -267,11 +260,10 @@ Pattern {
     (let_statement
       (identifier)
       (type_constraint))
-    (not_stmt
-      (call_expr
-        (identifier)
-        (expression_list
-          (identifier))))
+    (negated_call_expr
+      (identifier)
+      (expression_list
+        (identifier)))
     (erase_stmt
       (identifier))))
 
@@ -292,7 +284,9 @@ Pattern {
     (replace_stmt
       (identifier)
       (op_expr
-        (identifier)))))
+        (op_name
+          (identifier)
+          (identifier))))))
 
 ==================
 replace: identifier with call
@@ -316,6 +310,34 @@ Pattern {
           (identifier))))))
 
 ==================
+replace: with multiple replacement values
+==================
+Pattern {
+  let x: Op;
+  replace x with (_: Value, _: ValueRange, op<my_dialect.foo>);
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (replace_stmt
+      (identifier)
+      (replacement_list
+        (variable_def
+          (identifier)
+          (type_constraint))
+        (variable_def
+          (identifier)
+          (type_constraint))
+        (op_expr
+          (op_name
+            (identifier)
+            (identifier)))))))
+
+==================
 rewrite: with compound body
 ==================
 Pattern {
@@ -335,32 +357,6 @@ Pattern {
       (identifier)
       (erase_stmt
         (identifier)))))
-
-==================
-rewrite: with named rewrite identifier
-==================
-Rewrite Bar(x: Op);
-
-Pattern {
-  let x: Op;
-  rewrite x with Bar;
-}
----
-
-(source_file
-  (rewrite_decl
-    (identifier)
-    (argument_list
-      (argument
-        (identifier)
-        (type_constraint))))
-  (pattern_decl
-    (let_statement
-      (identifier)
-      (type_constraint))
-    (rewrite_stmt
-      (identifier)
-      (identifier))))
 
 ==================
 rewrite: compound body with multiple stmts
@@ -384,7 +380,9 @@ Pattern {
       (let_statement
         (identifier)
         (op_expr
-          (identifier)
+          (op_name
+            (identifier)
+            (identifier))
           (expression_list
             (identifier))))
       (replace_stmt

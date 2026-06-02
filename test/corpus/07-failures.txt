@@ -90,10 +90,85 @@ Pattern { erase; }
 ---
 
 ==================
+stmt failure: return with no expression
+:error
+==================
+Constraint Foo() {
+  return;
+}
+---
+
+==================
+stmt failure: rewrite with named rewrite identifier
+:error
+==================
+Rewrite Bar(x: Op);
+
+Pattern {
+  let x: Op;
+  rewrite x with Bar;
+}
+---
+
+==================
+stmt failure: not without call arguments
+:error
+==================
+Pattern {
+  not op<>;
+}
+---
+
+==================
 stmt failure: let type constraint missing close angle
 :error
 ==================
 Pattern { let foo: Attr<_: Type{}; }
+---
+
+==================
+stmt failure: empty replacement list
+:error
+==================
+Pattern {
+  replace op<> with ();
+}
+---
+
+==================
+stmt failure: operation result missing parens
+:error
+==================
+Pattern {
+  erase op<foo.bar> -> Type;
+}
+---
+
+==================
+stmt failure: Type inline constraint
+:error
+==================
+Pattern {
+  let value: Type<type<"i32">>;
+}
+---
+
+==================
+stmt failure: TypeRange inline constraint
+:error
+==================
+Pattern {
+  let values: TypeRange<type<"i32">>;
+}
+---
+
+==================
+stmt failure: unquoted invalid identifier characters
+:error
+==================
+Pattern {
+  let bad$name: Op;
+}
 ---
 
 ==================

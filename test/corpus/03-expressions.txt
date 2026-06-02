@@ -110,16 +110,17 @@ Pattern {
   (pattern_decl
     (erase_stmt
       (op_expr
-        (identifier)
+        (op_name
+          (identifier)
+          (identifier))
         (op_attributes
           (op_attribute
             (identifier)
             (attr_expr
               (string))))
-        (type_constraint
-          (tuple_type
-            (type_expr
-              (string))))))))
+        (operation_result_list
+          (type_expr
+            (string)))))))
 
 ==================
 op: identifier name
@@ -133,7 +134,9 @@ Pattern {
   (pattern_decl
     (erase_stmt
       (op_expr
-        (identifier)))))
+        (op_name
+          (identifier)
+          (identifier))))))
 
 ==================
 op: string name
@@ -147,7 +150,8 @@ Pattern {
   (pattern_decl
     (erase_stmt
       (op_expr
-        (string)))))
+        (op_name
+          (string))))))
 
 ==================
 op: empty angle
@@ -178,7 +182,9 @@ Pattern {
       (type_constraint))
     (erase_stmt
       (op_expr
-        (identifier)
+        (op_name
+          (identifier)
+          (identifier))
         (expression_list
           (identifier))))))
 
@@ -195,8 +201,7 @@ Pattern {
     (erase_stmt
       (op_expr
         (expression_list)
-        (type_constraint
-          (tuple_type))))))
+        (operation_result_list)))))
 
 ==================
 op: multiple operands
@@ -233,7 +238,9 @@ Pattern {
   (pattern_decl
     (erase_stmt
       (op_expr
-        (identifier)
+        (op_name
+          (identifier)
+          (identifier))
         (op_attributes
           (op_attribute
             (identifier)))))))
@@ -250,7 +257,9 @@ Pattern {
   (pattern_decl
     (erase_stmt
       (op_expr
-        (identifier)
+        (op_name
+          (identifier)
+          (identifier))
         (op_attributes
           (op_attribute
             (identifier)
@@ -269,7 +278,9 @@ Pattern {
   (pattern_decl
     (erase_stmt
       (op_expr
-        (identifier)
+        (op_name
+          (identifier)
+          (identifier))
         (op_attributes
           (op_attribute
             (string)
@@ -289,15 +300,56 @@ Pattern {
   (pattern_decl
     (erase_stmt
       (op_expr
+        (op_name
+          (identifier)
+          (identifier))
+        (operation_result_list
+          (variable_def
+            (identifier)
+            (type_constraint))
+          (variable_def
+            (identifier)
+            (type_constraint)))))))
+
+==================
+op: with result expressions
+==================
+Rewrite ConvertTypes(results: TypeRange) -> TypeRange;
+
+Pattern {
+  let results: TypeRange;
+  erase op<test.cast> -> (ConvertTypes(results), type<"i32">, (type<"i64">, results));
+}
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list
+      (argument
         (identifier)
-        (type_constraint
-          (tuple_type
-            (named_type_constraint
-              (identifier)
-              (type_constraint))
-            (named_type_constraint
-              (identifier)
-              (type_constraint))))))))
+        (type_constraint)))
+    (type_constraint))
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (erase_stmt
+      (op_expr
+        (op_name
+          (identifier)
+          (identifier))
+        (operation_result_list
+          (call_expr
+            (identifier)
+            (expression_list
+              (identifier)))
+          (type_expr
+            (string))
+          (tuple_expr
+            (type_expr
+              (string))
+            (identifier)))))))
 
 ==================
 op: all components
@@ -315,7 +367,9 @@ Pattern {
       (type_constraint))
     (erase_stmt
       (op_expr
-        (identifier)
+        (op_name
+          (identifier)
+          (identifier))
         (expression_list
           (identifier))
         (op_attributes
@@ -323,11 +377,10 @@ Pattern {
             (identifier)
             (attr_expr
               (string))))
-        (type_constraint
-          (tuple_type
-            (named_type_constraint
-              (identifier)
-              (type_constraint))))))))
+        (operation_result_list
+          (variable_def
+            (identifier)
+            (type_constraint)))))))
 
 ==================
 op: nested as operand
@@ -341,10 +394,12 @@ Pattern {
   (pattern_decl
     (erase_stmt
       (op_expr
-        (identifier)
+        (op_name
+          (identifier))
         (expression_list
           (op_expr
-            (identifier)))))))
+            (op_name
+              (identifier))))))))
 
 ==================
 call: no args
@@ -362,7 +417,9 @@ Pattern {
     (identifier)
     (argument_list)
     (op_expr
-      (identifier)))
+      (op_name
+        (identifier)
+        (identifier))))
   (pattern_decl
     (let_statement
       (identifier)
@@ -397,7 +454,9 @@ Pattern {
         (identifier)
         (type_constraint)))
     (op_expr
-      (identifier)))
+      (op_name
+        (identifier)
+        (identifier))))
   (pattern_decl
     (let_statement
       (identifier)
@@ -528,7 +587,9 @@ Pattern {
       (identifier)
       (member_access_expr
         (op_expr
-          (identifier))
+          (op_name
+            (identifier)
+            (identifier)))
         (integer)))
     (erase_stmt
       (variable_def
@@ -551,7 +612,9 @@ Pattern {
     (identifier)
     (argument_list)
     (op_expr
-      (identifier)))
+      (op_name
+        (identifier)
+        (identifier))))
   (pattern_decl
     (let_statement
       (identifier)

@@ -32,6 +32,16 @@ string: plain quoted
     (string)))
 
 ==================
+string: escaped characters
+==================
+#include "path\\to\"file\n"
+---
+
+(source_file
+  (include_directive
+    (string)))
+
+==================
 string: empty quoted
 ==================
 #include ""

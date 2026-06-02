@@ -208,7 +208,9 @@ Rewrite Bar(inputs: ValueRange) => op<my.foo>(inputs);
         (identifier)
         (type_constraint)))
     (op_expr
-      (identifier)
+      (op_name
+        (identifier)
+        (identifier))
       (expression_list
         (identifier)))))
 

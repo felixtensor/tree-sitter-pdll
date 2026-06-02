@@ -53,7 +53,7 @@ Constraint Foo(op: Op) => op;
       (argument
         (identifier)
         (type_constraint)))
-    (op_expr)))
+    (identifier)))
 
 ==================
 disambig: attr as bare identifier in expression
@@ -123,7 +123,7 @@ Constraint Foo(op: Op, attr: Attr, type: Type) {
     (call_expr
       (identifier)
       (expression_list
-        (op_expr)
+        (identifier)
         (identifier)
         (identifier)))))
 
@@ -139,14 +139,13 @@ Pattern {
   (pattern_decl
     (erase_stmt
       (op_expr
-        (type_constraint
-          (tuple_type
-            (named_type_constraint
-              (identifier)
-              (type_constraint))
-            (named_type_constraint
-              (identifier)
-              (type_constraint))))))))
+        (operation_result_list
+          (variable_def
+            (identifier)
+            (type_constraint))
+          (variable_def
+            (identifier)
+            (type_constraint)))))))
 
 ==================
 disambig: empty tuple expression
@@ -230,11 +229,14 @@ Pattern {
     (let_statement
       (identifier)
       (op_expr
-        (string)))
+        (op_name
+          (string))))
     (let_statement
       (identifier)
       (op_expr
-        (identifier)))
+        (op_name
+          (identifier)
+          (identifier))))
     (erase_stmt
       (variable_def
         (identifier)
@@ -255,4 +257,4 @@ Pattern {
       (identifier)
       (type_constraint))
     (erase_stmt
-      (op_expr))))
+      (identifier))))

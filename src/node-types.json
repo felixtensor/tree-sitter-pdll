@@ -159,7 +159,7 @@
           "named": true
         },
         {
-          "type": "not_stmt",
+          "type": "negated_call_expr",
           "named": true
         },
         {
@@ -234,6 +234,10 @@
           "named": true
         },
         {
+          "type": "negated_call_expr",
+          "named": true
+        },
+        {
           "type": "op_expr",
           "named": true
         },
@@ -282,6 +286,10 @@
         },
         {
           "type": "member_access_expr",
+          "named": true
+        },
+        {
+          "type": "negated_call_expr",
           "named": true
         },
         {
@@ -351,6 +359,10 @@
           "named": true
         },
         {
+          "type": "negated_call_expr",
+          "named": true
+        },
+        {
           "type": "op_expr",
           "named": true
         },
@@ -406,6 +418,10 @@
           "named": true
         },
         {
+          "type": "negated_call_expr",
+          "named": true
+        },
+        {
           "type": "op_expr",
           "named": true
         },
@@ -457,6 +473,10 @@
           "named": true
         },
         {
+          "type": "negated_call_expr",
+          "named": true
+        },
+        {
           "type": "op_expr",
           "named": true
         },
@@ -499,51 +519,19 @@
     }
   },
   {
-    "type": "not_stmt",
+    "type": "negated_call_expr",
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
         {
-          "type": "attr_expr",
-          "named": true
-        },
-        {
-          "type": "call_expr",
+          "type": "expression_list",
           "named": true
         },
         {
           "type": "identifier",
-          "named": true
-        },
-        {
-          "type": "integer",
-          "named": true
-        },
-        {
-          "type": "member_access_expr",
-          "named": true
-        },
-        {
-          "type": "op_expr",
-          "named": true
-        },
-        {
-          "type": "string",
-          "named": true
-        },
-        {
-          "type": "tuple_expr",
-          "named": true
-        },
-        {
-          "type": "type_expr",
-          "named": true
-        },
-        {
-          "type": "variable_def",
           "named": true
         }
       ]
@@ -575,6 +563,10 @@
         },
         {
           "type": "member_access_expr",
+          "named": true
+        },
+        {
+          "type": "negated_call_expr",
           "named": true
         },
         {
@@ -628,11 +620,73 @@
           "named": true
         },
         {
+          "type": "op_attributes",
+          "named": true
+        },
+        {
+          "type": "op_name",
+          "named": true
+        },
+        {
+          "type": "operation_result_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "op_name",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
           "type": "identifier",
           "named": true
         },
         {
-          "type": "op_attributes",
+          "type": "string",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "operation_result_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "attr_expr",
+          "named": true
+        },
+        {
+          "type": "call_expr",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "integer",
+          "named": true
+        },
+        {
+          "type": "member_access_expr",
+          "named": true
+        },
+        {
+          "type": "negated_call_expr",
+          "named": true
+        },
+        {
+          "type": "op_expr",
           "named": true
         },
         {
@@ -640,7 +694,15 @@
           "named": true
         },
         {
-          "type": "type_constraint",
+          "type": "tuple_expr",
+          "named": true
+        },
+        {
+          "type": "type_expr",
+          "named": true
+        },
+        {
+          "type": "variable_def",
           "named": true
         }
       ]
@@ -687,7 +749,7 @@
           "named": true
         },
         {
-          "type": "not_stmt",
+          "type": "negated_call_expr",
           "named": true
         },
         {
@@ -781,6 +843,69 @@
           "named": true
         },
         {
+          "type": "negated_call_expr",
+          "named": true
+        },
+        {
+          "type": "op_expr",
+          "named": true
+        },
+        {
+          "type": "replacement_list",
+          "named": true
+        },
+        {
+          "type": "string",
+          "named": true
+        },
+        {
+          "type": "tuple_expr",
+          "named": true
+        },
+        {
+          "type": "type_expr",
+          "named": true
+        },
+        {
+          "type": "variable_def",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "replacement_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attr_expr",
+          "named": true
+        },
+        {
+          "type": "call_expr",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "integer",
+          "named": true
+        },
+        {
+          "type": "member_access_expr",
+          "named": true
+        },
+        {
+          "type": "negated_call_expr",
+          "named": true
+        },
+        {
           "type": "op_expr",
           "named": true
         },
@@ -809,7 +934,7 @@
     "fields": {},
     "children": {
       "multiple": false,
-      "required": false,
+      "required": true,
       "types": [
         {
           "type": "attr_expr",
@@ -829,6 +954,10 @@
         },
         {
           "type": "member_access_expr",
+          "named": true
+        },
+        {
+          "type": "negated_call_expr",
           "named": true
         },
         {
@@ -903,7 +1032,7 @@
           "named": true
         },
         {
-          "type": "not_stmt",
+          "type": "negated_call_expr",
           "named": true
         },
         {
@@ -990,7 +1119,7 @@
           "named": true
         },
         {
-          "type": "not_stmt",
+          "type": "negated_call_expr",
           "named": true
         },
         {
@@ -1108,6 +1237,10 @@
           "named": true
         },
         {
+          "type": "negated_call_expr",
+          "named": true
+        },
+        {
           "type": "op_expr",
           "named": true
         },
@@ -1170,11 +1303,43 @@
       "required": false,
       "types": [
         {
+          "type": "attr_expr",
+          "named": true
+        },
+        {
+          "type": "call_expr",
+          "named": true
+        },
+        {
           "type": "identifier",
           "named": true
         },
         {
+          "type": "integer",
+          "named": true
+        },
+        {
+          "type": "member_access_expr",
+          "named": true
+        },
+        {
+          "type": "negated_call_expr",
+          "named": true
+        },
+        {
+          "type": "op_expr",
+          "named": true
+        },
+        {
+          "type": "op_name",
+          "named": true
+        },
+        {
           "type": "string",
+          "named": true
+        },
+        {
+          "type": "tuple_expr",
           "named": true
         },
         {
@@ -1183,6 +1348,10 @@
         },
         {
           "type": "type_constraint",
+          "named": true
+        },
+        {
+          "type": "type_expr",
           "named": true
         },
         {

@@ -21,7 +21,8 @@ Constraint Foo() -> Op<"toy.add">;
     (identifier)
     (argument_list)
     (type_constraint
-      (string))))
+      (op_name
+        (string)))))
 
 ==================
 type: Op with identifier name
@@ -34,7 +35,9 @@ Constraint Foo() -> Op<foo.bar>;
     (identifier)
     (argument_list)
     (type_constraint
-      (identifier))))
+      (op_name
+        (identifier)
+        (identifier)))))
 
 ==================
 type: bare Attr
@@ -113,6 +116,82 @@ Pattern {
         (variable_def
           (identifier)
           (type_constraint))))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+type: Attr parametrized by expression
+==================
+Pattern {
+  let a: Attr<attr<"10">>;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint
+        (attr_expr
+          (string))))
+    (erase_stmt
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+type: Value parametrized by call expression
+==================
+Constraint InferType(op: Op) -> Type;
+
+Pattern {
+  let root: Op;
+  let x: Value<InferType(root)>;
+  erase root;
+}
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (type_constraint))
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (let_statement
+      (identifier)
+      (type_constraint
+        (call_expr
+          (identifier)
+          (expression_list
+            (identifier)))))
+    (erase_stmt
+      (identifier))))
+
+==================
+type: ValueRange parametrized by type expression
+==================
+Pattern {
+  let values: ValueRange<type<"i32">>;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint
+        (type_expr
+          (string))))
     (erase_stmt
       (variable_def
         (identifier)
