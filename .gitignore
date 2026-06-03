@@ -1,5 +1,6 @@
 # Rust artifacts
 target/
+Cargo.lock
 
 # Node artifacts
 build/
@@ -32,6 +33,7 @@ dist/
 # Zig artifacts
 .zig-cache/
 zig-cache/
+zig-pkg/
 zig-out/
 
 # Grammar volatiles
