@@ -16,7 +16,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    uses: tree-sitter/workflows/.github/workflows/regenerate.yml@c0a88aa8100f1d9165d7bb1ea44a36935079d8dc
+    uses: tree-sitter/workflows/.github/workflows/regenerate.yml@cc03699ad21049475b5762cd1c38a35146691e85
     with:
       # tree-sitter@0.25.0 fails to build its Node binding under Node 24.
       node-version: "22"
