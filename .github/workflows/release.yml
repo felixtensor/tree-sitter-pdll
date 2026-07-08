@@ -1,0 +1,383 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+# Tag-only: verify committed package metadata against the tag.
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  # Tags must already include tree-sitter-managed version metadata and generated artifacts.
+  verify-version:
+    name: Verify version metadata matches tag
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up tree-sitter
+        uses: tree-sitter/setup-action/cli@v2
+        with:
+          # Sync with package.json and ci.yml for reproducible generated files.
+          tree-sitter-ref: v0.26.10
+
+      - name: Set up NodeJS
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Check tree-sitter-managed version metadata
+        run: |
+          set -euo pipefail
+
+          version="${GITHUB_REF_NAME#v}"
+          echo "Checking tree-sitter-managed version metadata for ${version}"
+
+          # Let tree-sitter update every version-bearing file it owns.
+          tree-sitter version "$version"
+          tree-sitter generate
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Version metadata is already committed for ${GITHUB_REF_NAME}."
+            exit 0
+          fi
+
+          echo "::error::Version metadata is not fully committed for ${GITHUB_REF_NAME}."
+          echo "Run these commands before creating the release tag, then commit the resulting changes:"
+          echo "  tree-sitter version ${version}"
+          echo "  tree-sitter generate"
+          echo "  npm install --package-lock-only --ignore-scripts --no-audit --no-fund"
+          echo ""
+          echo "Changed files after applying version metadata checks:"
+          git status --short
+          echo ""
+          echo "Diff summary:"
+          git --no-pager diff --stat
+          echo ""
+          echo "Diff:"
+          git --no-pager diff --no-ext-diff
+          exit 1
+
+  # Build release artifacts before human approval.
+  npm-wasm:
+    name: Build npm Wasm binary
+    needs: verify-version
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up NodeJS
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --omit peer --omit optional
+
+      - name: Build Wasm binary
+        run: npm x -- tree-sitter build --wasm
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v7
+        with:
+          path: "*.wasm"
+          name: prebuilds-wasm
+          if-no-files-found: error
+          # Keep artifacts through manual approval.
+          retention-days: 14
+
+  npm-prebuilds:
+    name: Build npm prebuild on ${{matrix.os}}
+    needs: verify-version
+    runs-on: ${{matrix.os}}
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        os:
+          - windows-2025
+          - windows-11-arm
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+          - macos-15
+          - macos-15-intel
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up NodeJS
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --omit peer --omit optional --ignore-scripts
+
+      - name: Build binary
+        run: npm run prebuildify:release
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v7
+        with:
+          path: prebuilds/**
+          name: prebuilds-${{matrix.os}}
+          if-no-files-found: error
+          # Keep artifacts through manual approval.
+          retention-days: 14
+
+  # cargo publish cannot separate package creation from upload.
+  crates-build:
+    name: Build crate
+    needs: verify-version
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Verify crate builds and packages
+        run: cargo publish --dry-run
+
+  pypi-sdist:
+    name: Build Python sdist
+    needs: verify-version
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install build tooling
+        run: pip install --upgrade pip build setuptools wheel twine
+
+      - name: Build sdist
+        run: python -m build -n -s
+
+      - name: Check distribution metadata
+        run: twine check dist/*
+
+      - name: Upload sdist
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist-sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
+          # Keep artifacts through manual approval.
+          retention-days: 14
+
+  pypi-wheels:
+    name: Build Python wheel on ${{matrix.os}}
+    needs: verify-version
+    runs-on: ${{matrix.os}}
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        os:
+          - windows-2025
+          - windows-11-arm
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+          - macos-15
+          - macos-15-intel
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v4.1
+        with:
+          output-dir: dist
+        env:
+          CIBW_ARCHS: native
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist-wheels-${{matrix.os}}
+          path: dist/*.whl
+          if-no-files-found: error
+          # Keep artifacts through manual approval.
+          retention-days: 14
+
+  pypi-dist-check:
+    name: Check Python distributions
+    needs: [pypi-sdist, pypi-wheels]
+    runs-on: ubuntu-24.04
+    permissions: {}
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Download distributions
+        uses: actions/download-artifact@v8
+        with:
+          path: dist
+          pattern: dist-*
+          merge-multiple: true
+
+      - name: Install check tooling
+        run: python -m pip install --upgrade pip twine
+
+      - name: Check distributions
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          sdists=(dist/*.tar.gz)
+          wheels=(dist/*.whl)
+
+          # Per-leg `if-no-files-found: error` and the build `needs` already
+          # guarantee every leg produced artifacts; assert presence only, so the
+          # gate never pins a wheel count that shifts with the build matrix.
+          if [ "${#sdists[@]}" -eq 0 ]; then
+            echo "::error::No sdist found in dist/."
+            exit 1
+          fi
+
+          if [ "${#wheels[@]}" -eq 0 ]; then
+            echo "::error::No wheels found in dist/."
+            exit 1
+          fi
+
+          python -m twine check dist/*
+
+  # Human approval gates publishing after all build jobs complete.
+  release-approval:
+    name: Approve release
+    needs:
+      - verify-version
+      - npm-wasm
+      - npm-prebuilds
+      - crates-build
+      - pypi-dist-check
+    runs-on: ubuntu-24.04
+    permissions: {}
+    environment: release
+    steps:
+      - name: Confirm release
+        run: echo "Release ${GITHUB_REF_NAME} approved; publishing."
+
+  # The upstream GitHub release workflow still builds its own release artifacts.
+  github-release:
+    needs: release-approval
+    uses: tree-sitter/workflows/.github/workflows/release.yml@cc03699ad21049475b5762cd1c38a35146691e85
+
+  # crates.io OIDC trusted publishing; no long-lived token is needed.
+  crates-publish:
+    name: Publish crate
+    needs: release-approval
+    runs-on: ubuntu-24.04
+    environment:
+      name: crates
+      url: https://crates.io/crates/tree-sitter-pdll
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Authenticate to crates.io
+        id: auth
+        uses: rust-lang/crates-io-auth-action@v1
+
+      - name: Publish to crates.io
+        run: cargo publish --no-verify
+        env:
+          CARGO_REGISTRY_TOKEN: ${{steps.auth.outputs.token}}
+
+  # PyPI OIDC trusted publishing; no long-lived token is needed.
+  pypi-publish:
+    name: Publish Python package
+    needs: release-approval
+    runs-on: ubuntu-24.04
+    environment:
+      name: pypi
+      url: https://pypi.org/project/tree-sitter-pdll/
+    permissions:
+      id-token: write
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v8
+        with:
+          path: dist
+          pattern: dist-*
+          merge-multiple: true
+
+      - name: List distributions
+        run: ls -l dist
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.14.0
+
+  # npm uses OIDC trusted publishing; no long-lived token is needed.
+  npm-publish:
+    name: Publish npm package
+    needs: release-approval
+    runs-on: ubuntu-24.04
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/tree-sitter-pdll
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up NodeJS
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          registry-url: https://registry.npmjs.org/
+
+      # npm >= 11.5.1 is required for OIDC trusted publishing.
+      - name: Update npm
+        run: npm install -g npm@11
+
+      - name: Download binaries
+        uses: actions/download-artifact@v8
+        with:
+          path: prebuilds
+          pattern: prebuilds-*
+          merge-multiple: true
+
+      - name: Move Wasm binary to root
+        run: mv -v prebuilds/*.wasm .
+
+      - name: Publish to npm
+        run: npm publish

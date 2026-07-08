@@ -1,0 +1,188 @@
+name: Package check
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/package-check.yml
+      - .github/workflows/release.yml
+      - CMakeLists.txt
+      - Cargo.toml
+      - Cargo.lock
+      - Makefile
+      - Package.resolved
+      - Package.swift
+      - build.zig
+      - build.zig.zon
+      - pyproject.toml
+      - setup.py
+      - package.json
+      - package-lock.json
+      - binding.gyp
+      - go.mod
+      - LICENSE
+      - README.md
+      - bindings/**
+      - grammar.js
+      - queries/**
+      - src/**
+      - test/**
+      - tree-sitter.json
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/package-check.yml
+      - .github/workflows/release.yml
+      - CMakeLists.txt
+      - Cargo.toml
+      - Cargo.lock
+      - Makefile
+      - Package.resolved
+      - Package.swift
+      - build.zig
+      - build.zig.zon
+      - pyproject.toml
+      - setup.py
+      - package.json
+      - package-lock.json
+      - binding.gyp
+      - go.mod
+      - LICENSE
+      - README.md
+      - bindings/**
+      - grammar.js
+      - queries/**
+      - src/**
+      - test/**
+      - tree-sitter.json
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  cargo:
+    name: Check crates.io package
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Check package file list
+        run: |
+          cargo package --list | tee /tmp/cargo-package-files
+          ! grep -E '(^|/)tmp/|(^|/)node_modules/|^build/' /tmp/cargo-package-files
+
+      - name: Dry-run publish
+        run: cargo publish --dry-run
+
+  python:
+    name: Check PyPI package
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Build package
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+
+      - name: Install wheel and smoke test
+        run: |
+          python -m venv /tmp/tree-sitter-pdll-py
+          /tmp/tree-sitter-pdll-py/bin/pip install dist/tree_sitter_pdll-*.whl
+          /tmp/tree-sitter-pdll-py/bin/python -c "import tree_sitter_pdll as pdll; assert pdll.language(); assert pdll.HIGHLIGHTS_QUERY; assert pdll.INJECTIONS_QUERY; assert pdll.LOCALS_QUERY"
+
+      - name: Install sdist and smoke test
+        # Exercises the from-source compile path, not just the prebuilt wheel.
+        run: |
+          python -m venv /tmp/tree-sitter-pdll-sdist
+          /tmp/tree-sitter-pdll-sdist/bin/pip install dist/tree_sitter_pdll-*.tar.gz
+          /tmp/tree-sitter-pdll-sdist/bin/python -c "import tree_sitter_pdll as pdll; assert pdll.language(); assert pdll.HIGHLIGHTS_QUERY; assert pdll.INJECTIONS_QUERY; assert pdll.LOCALS_QUERY"
+
+  npm:
+    name: Check npm package
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up NodeJS
+        uses: actions/setup-node@v6
+        with:
+          cache: npm
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Setup tree-sitter CLI
+        run: npm rebuild tree-sitter-cli
+
+      - name: Check package-lock is up to date
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          git diff --exit-code -- package-lock.json
+
+      - name: Run Wasm parser tests
+        run: npm run test -- --wasm
+
+      - name: Check highlight captures
+        run: npm x -- tree-sitter highlight --quiet --check test/highlight/*/*.pdll --query-paths queries/highlights.scm
+
+      - name: Build local prebuild
+        run: npm run prebuildify:release
+
+      - name: Install Node binding peer
+        run: |
+          npm install \
+            --no-save \
+            --package-lock=false \
+            --no-audit \
+            --no-fund \
+            tree-sitter@0.25.0
+          npm rebuild tree-sitter
+
+      - name: Run Node binding test
+        run: npm run test:bindings
+
+      - name: Dry-run pack
+        run: |
+          npm pack --dry-run --json | tee /tmp/npm-pack.json
+          node - <<'JS'
+          const fs = require("fs");
+          const pack = JSON.parse(fs.readFileSync("/tmp/npm-pack.json", "utf8"))[0];
+          const paths = pack.files.map(file => file.path);
+
+          for (const required of [
+            "grammar.js",
+            "tree-sitter.json",
+            "binding.gyp",
+            "src/parser.c",
+            "queries/highlights.scm",
+          ]) {
+            if (!paths.includes(required)) throw new Error(`missing ${required}`);
+          }
+
+          if (!paths.some(path => path.startsWith("prebuilds/"))) {
+            throw new Error("missing prebuilds");
+          }
+
+          for (const forbidden of ["tmp/", "node_modules/", "target/"]) {
+            if (paths.some(path => path.startsWith(forbidden))) {
+              throw new Error(`packed forbidden path ${forbidden}`);
+            }
+          }
+          JS

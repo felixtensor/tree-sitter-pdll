@@ -2,6 +2,7 @@
   "name": "tree-sitter-pdll",
   "version": "0.1.0",
   "description": "PDLL grammar for tree-sitter",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/felixtensor/tree-sitter-pdll.git"
@@ -36,6 +37,7 @@
     "node-gyp-build": "^4.8.4"
   },
   "devDependencies": {
+    "node-gyp": "^13.0.1",
     "prebuildify": "^6.0.1",
     "tree-sitter": "^0.25.0",
     "tree-sitter-cli": "^0.26.10"
@@ -58,6 +60,7 @@
     "test:bindings": "node --test bindings/node/*_test.js",
     "test:examples": "tree-sitter parse --quiet --stat 'examples/**/*.pdll'",
     "test:all": "npm run test && npm run test:examples",
-    "prebuildify": "prebuildify --napi --strip"
+    "prebuildify": "prebuildify --napi --strip",
+    "prebuildify:release": "prebuildify -t 20.19.5"
   }
 }
