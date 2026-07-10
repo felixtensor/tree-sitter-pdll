@@ -1,0 +1,16 @@
+#include "ops.td"
+// <- keyword.import
+//       ^ string
+
+Constraint HasFoo(op: Op);
+// <- keyword
+//         ^ type.definition
+//                ^ variable.parameter
+//                    ^ type.builtin
+
+Rewrite Build(root: Op) {
+// <- keyword
+//      ^ function
+  erase root;
+//^ keyword
+}
