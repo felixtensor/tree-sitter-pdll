@@ -1,7 +1,7 @@
 .{
     .name = .tree_sitter_pdll,
     .fingerprint = 0x5f96d9533a42c7b2,
-    .version = "0.1.0",
+    .version = "0.1.1",
     .dependencies = .{
         .tree_sitter = .{
             .url = "git+https://github.com/tree-sitter/zig-tree-sitter#91f1b7ca97448a47d2fb2544b847214ed4aa1a98",
