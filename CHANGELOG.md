@@ -71,7 +71,7 @@ with editor support out of the box.
   `#include` → `@keyword.import`, single-assignment value identifiers →
   `@variable.readonly`.
 
-## [0.1.0] - 2026-04-19
+## [0.1.0] - 2026-07-08
 
 Initial tagged grammar.
 

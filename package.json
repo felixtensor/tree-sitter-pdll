@@ -1,6 +1,6 @@
 {
   "name": "tree-sitter-pdll",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "PDLL grammar for tree-sitter",
   "type": "module",
   "repository": {
