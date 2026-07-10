@@ -116,7 +116,7 @@ Pattern {
         (variable_def
           (identifier)
           (type_constraint))))
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -137,7 +137,7 @@ Pattern {
       (type_constraint
         (attr_expr
           (string))))
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -173,7 +173,7 @@ Pattern {
           (identifier)
           (expression_list
             (identifier)))))
-    (erase_stmt
+    (erase_statement
       (identifier))))
 
 ==================
@@ -192,7 +192,7 @@ Pattern {
       (type_constraint
         (type_expr
           (string))))
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -236,7 +236,7 @@ Pattern {
       (type_constraint
         (type_constraint)
         (type_constraint)))
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))

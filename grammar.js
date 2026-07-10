@@ -173,14 +173,14 @@ export default grammar({
       choice(
         $.let_statement,
         $._operation_rewrite_statement,
-        $.return_stmt,
+        $.return_statement,
         alias($._inline_constraint_statement_decl, $.constraint_decl),
         alias($._inline_rewrite_statement_decl, $.rewrite_decl),
         seq($._expression, ";"),
       ),
 
     _operation_rewrite_statement: ($) =>
-      choice($.erase_stmt, $.replace_stmt, $.rewrite_stmt),
+      choice($.erase_statement, $.replace_statement, $.rewrite_statement),
 
     let_statement: ($) =>
       seq(
@@ -191,9 +191,9 @@ export default grammar({
         ";",
       ),
 
-    erase_stmt: ($) => seq("erase", $._expression, ";"),
+    erase_statement: ($) => seq("erase", $._expression, ";"),
 
-    replace_stmt: ($) =>
+    replace_statement: ($) =>
       seq(
         "replace",
         $._expression,
@@ -222,7 +222,7 @@ export default grammar({
     replacement_list: ($) =>
       prec(PREC.replacement_list, seq("(", commaSep1($._expression), ")")),
 
-    rewrite_stmt: ($) =>
+    rewrite_statement: ($) =>
       seq(
         "rewrite",
         $._expression,
@@ -231,7 +231,7 @@ export default grammar({
         ";",
       ),
 
-    return_stmt: ($) => seq("return", $._expression, ";"),
+    return_statement: ($) => seq("return", $._expression, ";"),
 
     // =========================================================================
     // Expressions
@@ -399,12 +399,12 @@ export default grammar({
 
     integer: ($) => /[0-9]+/,
 
-    // A double-quoted literal (with C-style escapes) or a native code block.
+    // A double-quoted string literal with C-style escapes. Native code blocks
+    // are a separate literal (code_block); they are only accepted as a
+    // declaration body, never in a string position such as `#include` or
+    // `attr<…>`.
     string: ($) =>
-      choice(
-        seq('"', repeat(choice(/[^"\\\n]/, /\\(["\\nt]|[0-9a-fA-F]{2})/)), '"'),
-        $.code_block,
-      ),
+      seq('"', repeat(choice(/[^"\\\n]/, /\\(["\\nt]|[0-9a-fA-F]{2})/)), '"'),
 
     // Line comment (BCPL `//` to end of line).
     comment: ($) => token(seq("//", /.*/)),

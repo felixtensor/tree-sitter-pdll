@@ -83,7 +83,7 @@ Constraint Foo(x: Value) {
       (argument
         (identifier)
         (type_constraint)))
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -229,7 +229,7 @@ Rewrite Bar(x: Op) {
       (argument
         (identifier)
         (type_constraint)))
-    (erase_stmt
+    (erase_statement
       (identifier))))
 
 ==================
@@ -302,7 +302,7 @@ Pattern { erase _: Op; }
 
 (source_file
   (pattern_decl
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -316,7 +316,7 @@ Pattern Foo { erase _: Op; }
 (source_file
   (pattern_decl
     (identifier)
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -333,7 +333,7 @@ Pattern Foo with benefit(10) { erase _: Op; }
     (pattern_metadata
       (benefit_metadata
         (integer)))
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -349,7 +349,7 @@ Pattern Foo with recursion { erase _: Op; }
     (identifier)
     (pattern_metadata
       (recursion_metadata))
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -367,7 +367,7 @@ Pattern Foo with benefit(5), recursion { erase _: Op; }
       (benefit_metadata
         (integer))
       (recursion_metadata))
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -381,7 +381,7 @@ Pattern Foo => erase _: Op;
 (source_file
   (pattern_decl
     (identifier)
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -398,7 +398,7 @@ Pattern Foo with benefit(1) => erase _: Op;
     (pattern_metadata
       (benefit_metadata
         (integer)))
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -418,5 +418,5 @@ Pattern Foo {
     (let_statement
       (identifier)
       (type_constraint))
-    (erase_stmt
+    (erase_statement
       (identifier))))

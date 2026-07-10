@@ -13,6 +13,27 @@ directive failure: include with angle filename
 ---
 
 ==================
+directive failure: code block as include path
+:error
+==================
+#include [{}]
+---
+
+==================
+attr failure: code block instead of string
+:error
+==================
+Pattern { let a = attr<[{}]>; }
+---
+
+==================
+op failure: code block as op name
+:error
+==================
+Pattern { erase op<[{}]>; }
+---
+
+==================
 string failure: unclosed code block
 :error
 ==================

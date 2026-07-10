@@ -8,7 +8,7 @@ Pattern { let x; erase _: Op; }
   (pattern_decl
     (let_statement
       (identifier))
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -24,7 +24,7 @@ Pattern { let x: Op; erase x; }
     (let_statement
       (identifier)
       (type_constraint))
-    (erase_stmt
+    (erase_statement
       (identifier))))
 
 ==================
@@ -44,7 +44,7 @@ Pattern {
         (op_name
           (identifier)
           (identifier))))
-    (erase_stmt
+    (erase_statement
       (identifier))))
 
 ==================
@@ -65,7 +65,7 @@ Pattern {
         (op_name
           (identifier)
           (identifier))))
-    (erase_stmt
+    (erase_statement
       (identifier))))
 
 ==================
@@ -81,7 +81,7 @@ Pattern { let x: Op<"toy.add">; erase x; }
       (type_constraint
         (op_name
           (string))))
-    (erase_stmt
+    (erase_statement
       (identifier))))
 
 ==================
@@ -97,7 +97,7 @@ Pattern { let x: [Attr, Attr]; erase _: Op; }
       (type_constraint
         (type_constraint)
         (type_constraint)))
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -117,7 +117,7 @@ Pattern {
       (identifier)
       (attr_expr
         (string)))
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -137,7 +137,7 @@ Pattern {
       (identifier)
       (type_expr
         (string)))
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -156,7 +156,7 @@ Pattern {
     (let_statement
       (identifier)
       (type_constraint))
-    (erase_stmt
+    (erase_statement
       (identifier))))
 
 ==================
@@ -169,7 +169,7 @@ Pattern {
 
 (source_file
   (pattern_decl
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -184,7 +184,7 @@ Pattern {
 
 (source_file
   (pattern_decl
-    (erase_stmt
+    (erase_statement
       (op_expr
         (op_name
           (identifier)
@@ -206,7 +206,7 @@ Constraint Foo(a: Value) -> Value {
         (identifier)
         (type_constraint)))
     (type_constraint)
-    (return_stmt
+    (return_statement
       (identifier))))
 
 ==================
@@ -229,7 +229,7 @@ Constraint Foo() -> (x: Value, y: Attr) {
         (named_type_constraint
           (identifier)
           (type_constraint))))
-    (return_stmt
+    (return_statement
       (tuple_expr
         (variable_def
           (identifier)
@@ -264,7 +264,7 @@ Pattern {
       (identifier)
       (expression_list
         (identifier)))
-    (erase_stmt
+    (erase_statement
       (identifier))))
 
 ==================
@@ -281,7 +281,7 @@ Pattern {
     (let_statement
       (identifier)
       (type_constraint))
-    (replace_stmt
+    (replace_statement
       (identifier)
       (op_expr
         (op_name
@@ -302,7 +302,7 @@ Pattern {
     (let_statement
       (identifier)
       (type_constraint))
-    (replace_stmt
+    (replace_statement
       (identifier)
       (call_expr
         (identifier)
@@ -323,7 +323,7 @@ Pattern {
     (let_statement
       (identifier)
       (type_constraint))
-    (replace_stmt
+    (replace_statement
       (identifier)
       (replacement_list
         (variable_def
@@ -353,9 +353,9 @@ Pattern {
     (let_statement
       (identifier)
       (type_constraint))
-    (rewrite_stmt
+    (rewrite_statement
       (identifier)
-      (erase_stmt
+      (erase_statement
         (identifier)))))
 
 ==================
@@ -375,7 +375,7 @@ Pattern {
     (let_statement
       (identifier)
       (type_constraint))
-    (rewrite_stmt
+    (rewrite_statement
       (identifier)
       (let_statement
         (identifier)
@@ -385,6 +385,6 @@ Pattern {
             (identifier))
           (expression_list
             (identifier))))
-      (replace_stmt
+      (replace_statement
         (identifier)
         (identifier)))))

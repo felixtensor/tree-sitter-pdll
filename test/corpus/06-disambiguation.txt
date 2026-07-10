@@ -137,7 +137,7 @@ Pattern {
 
 (source_file
   (pattern_decl
-    (erase_stmt
+    (erase_statement
       (op_expr
         (operation_result_list
           (variable_def
@@ -161,7 +161,7 @@ Pattern {
     (let_statement
       (identifier)
       (tuple_expr))
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -196,7 +196,7 @@ Pattern {
           (identifier)
           (identifier))
         (identifier)))
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -237,7 +237,7 @@ Pattern {
         (op_name
           (identifier)
           (identifier))))
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -256,5 +256,5 @@ Pattern {
     (let_statement
       (identifier)
       (type_constraint))
-    (erase_stmt
+    (erase_statement
       (identifier))))

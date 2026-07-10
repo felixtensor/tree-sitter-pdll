@@ -1011,7 +1011,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "return_stmt"
+          "name": "return_statement"
         },
         {
           "type": "ALIAS",
@@ -1051,15 +1051,15 @@
       "members": [
         {
           "type": "SYMBOL",
-          "name": "erase_stmt"
+          "name": "erase_statement"
         },
         {
           "type": "SYMBOL",
-          "name": "replace_stmt"
+          "name": "replace_statement"
         },
         {
           "type": "SYMBOL",
-          "name": "rewrite_stmt"
+          "name": "rewrite_statement"
         }
       ]
     },
@@ -1122,7 +1122,7 @@
         }
       ]
     },
-    "erase_stmt": {
+    "erase_statement": {
       "type": "SEQ",
       "members": [
         {
@@ -1139,7 +1139,7 @@
         }
       ]
     },
-    "replace_stmt": {
+    "replace_statement": {
       "type": "SEQ",
       "members": [
         {
@@ -1264,7 +1264,7 @@
         ]
       }
     },
-    "rewrite_stmt": {
+    "rewrite_statement": {
       "type": "SEQ",
       "members": [
         {
@@ -1305,7 +1305,7 @@
         }
       ]
     },
-    "return_stmt": {
+    "return_statement": {
       "type": "SEQ",
       "members": [
         {
@@ -2367,40 +2367,31 @@
       "value": "[0-9]+"
     },
     "string": {
-      "type": "CHOICE",
+      "type": "SEQ",
       "members": [
         {
-          "type": "SEQ",
-          "members": [
-            {
-              "type": "STRING",
-              "value": "\""
-            },
-            {
-              "type": "REPEAT",
-              "content": {
-                "type": "CHOICE",
-                "members": [
-                  {
-                    "type": "PATTERN",
-                    "value": "[^\"\\\\\\n]"
-                  },
-                  {
-                    "type": "PATTERN",
-                    "value": "\\\\([\"\\\\nt]|[0-9a-fA-F]{2})"
-                  }
-                ]
-              }
-            },
-            {
-              "type": "STRING",
-              "value": "\""
-            }
-          ]
+          "type": "STRING",
+          "value": "\""
         },
         {
-          "type": "SYMBOL",
-          "name": "code_block"
+          "type": "REPEAT",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "PATTERN",
+                "value": "[^\"\\\\\\n]"
+              },
+              {
+                "type": "PATTERN",
+                "value": "\\\\([\"\\\\nt]|[0-9a-fA-F]{2})"
+              }
+            ]
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "\""
         }
       ]
     },

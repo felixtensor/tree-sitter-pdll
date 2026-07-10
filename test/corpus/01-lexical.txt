@@ -52,18 +52,6 @@ string: empty quoted
     (string)))
 
 ==================
-string: as code block via include
-==================
-#include [{ raw }]
----
-
-(source_file
-  (include_directive
-    (string
-      (code_block
-        (code_block_content)))))
-
-==================
 code_block: as constraint body
 ==================
 Constraint Foo() [{ return isFoo(); }];
@@ -129,7 +117,7 @@ Pattern {
 (source_file
   (pattern_decl
     (comment)
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))))
@@ -144,7 +132,7 @@ Pattern {
 
 (source_file
   (pattern_decl
-    (erase_stmt
+    (erase_statement
       (variable_def
         (identifier)
         (type_constraint)))
