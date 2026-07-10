@@ -2380,11 +2380,15 @@
             "members": [
               {
                 "type": "PATTERN",
-                "value": "[^\"\\\\\\n]"
+                "value": "[^\"\\\\\\n]+"
               },
               {
-                "type": "PATTERN",
-                "value": "\\\\([\"\\\\nt]|[0-9a-fA-F]{2})"
+                "type": "SYMBOL",
+                "name": "escape_sequence"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "invalid_escape"
               }
             ]
           }
@@ -2394,6 +2398,47 @@
           "value": "\""
         }
       ]
+    },
+    "escape_sequence": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "\\"
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "PATTERN",
+                "value": "[\"\\\\nt]"
+              },
+              {
+                "type": "PATTERN",
+                "value": "[0-9a-fA-F]{2}"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "invalid_escape": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "\\"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[^\\n]"
+          }
+        ]
+      }
     },
     "comment": {
       "type": "TOKEN",

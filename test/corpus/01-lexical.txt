@@ -39,7 +39,21 @@ string: escaped characters
 
 (source_file
   (include_directive
-    (string)))
+    (string
+      (escape_sequence)
+      (escape_sequence)
+      (escape_sequence))))
+
+==================
+string: invalid escape
+==================
+#include "bad\q"
+---
+
+(source_file
+  (include_directive
+    (string
+      (invalid_escape))))
 
 ==================
 string: empty quoted

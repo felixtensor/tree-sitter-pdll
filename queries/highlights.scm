@@ -13,6 +13,9 @@
 
 ;; ── Literals ────────────────────────────────────────────────────────────────
 (string) @string
+;; Escapes overlay on the string; a malformed escape is flagged.
+(escape_sequence) @string.escape
+(invalid_escape) @error
 (integer) @number
 
 ;; ── Identifiers ─────────────────────────────────────────────────────────────

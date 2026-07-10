@@ -1192,7 +1192,21 @@
   {
     "type": "string",
     "named": true,
-    "fields": {}
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "escape_sequence",
+          "named": true
+        },
+        {
+          "type": "invalid_escape",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "tuple_expr",
@@ -1503,11 +1517,19 @@
     "named": false
   },
   {
+    "type": "escape_sequence",
+    "named": true
+  },
+  {
     "type": "identifier",
     "named": true
   },
   {
     "type": "integer",
+    "named": true
+  },
+  {
+    "type": "invalid_escape",
     "named": true
   },
   {

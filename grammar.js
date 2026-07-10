@@ -399,12 +399,25 @@ export default grammar({
 
     integer: ($) => /[0-9]+/,
 
-    // A double-quoted string literal with C-style escapes. Native code blocks
-    // are a separate literal (code_block); they are only accepted as a
-    // declaration body, never in a string position such as `#include` or
-    // `attr<…>`.
+    // A double-quoted string literal. Escapes are exposed as escape_sequence /
+    // invalid_escape child nodes. Native code blocks are a separate literal
+    // (code_block); they are only accepted as a declaration body, never in a
+    // string position such as `#include` or `attr<…>`.
     string: ($) =>
-      seq('"', repeat(choice(/[^"\\\n]/, /\\(["\\nt]|[0-9a-fA-F]{2})/)), '"'),
+      seq(
+        '"',
+        repeat(choice(/[^"\\\n]+/, $.escape_sequence, $.invalid_escape)),
+        '"',
+      ),
+
+    // `\"`, `\\`, `\n`, `\t`, or a `\` + two-hex-digit byte. Defined before
+    // invalid_escape so it wins the lexer tie on a well-formed escape.
+    escape_sequence: ($) =>
+      token(seq("\\", choice(/["\\nt]/, /[0-9a-fA-F]{2}/))),
+
+    // Any other `\`-escape; kept as a node (rather than a parse error) so it can
+    // be flagged as an error by the highlighter.
+    invalid_escape: ($) => token(seq("\\", /[^\n]/)),
 
     // Line comment (BCPL `//` to end of line).
     comment: ($) => token(seq("//", /.*/)),
