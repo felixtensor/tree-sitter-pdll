@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **CI:** install the tree-sitter CLI version `package-lock.json` resolves, so
+  Dependabot's npm updates move CI with them.
+
 ## [0.1.1] - 2026-07-10
 
 Query set, highlight ergonomics, and CI maturity — the first release that ships
