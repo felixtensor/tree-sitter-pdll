@@ -171,6 +171,7 @@ jobs:
             "tree-sitter.json",
             "binding.gyp",
             "src/parser.c",
+            "src/scanner.c",
             "queries/highlights.scm",
           ]) {
             if (!paths.includes(required)) throw new Error(`missing ${required}`);
