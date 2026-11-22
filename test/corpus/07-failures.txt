@@ -108,6 +108,16 @@ bar">;
 ---
 
 ==================
+string failure: raw carriage return in double-quoted string
+:error
+==================
+Pattern {
+  let a = attr<"foobar">;
+  erase _: Op;
+}
+---
+
+==================
 pattern failure: missing body
 :error
 ==================

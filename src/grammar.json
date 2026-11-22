@@ -3014,7 +3014,7 @@
                   "value": 1,
                   "content": {
                     "type": "PATTERN",
-                    "value": "[^\"\\\\\\n\\x0b\\x0c]+"
+                    "value": "[^\"\\\\\\r\\n\\x0b\\x0c]+"
                   }
                 }
               },
@@ -3074,7 +3074,7 @@
           },
           {
             "type": "PATTERN",
-            "value": "[^\\n\\x0b\\x0c]"
+            "value": "[^\\r\\n\\x0b\\x0c]"
           }
         ]
       }

@@ -84,6 +84,13 @@ export default grammar({
     // =========================================================================
     // Declarations
     // =========================================================================
+    // Intentional Parser.cpp relaxations for editor resilience / compact tables:
+    //   - Compound Pattern bodies accept `repeat($._pattern_statement)` without
+    //     requiring a single terminal operation-rewrite statement.
+    //   - Constraint/Rewrite bodies do not enforce `return` placement or presence.
+    //   - Rewrite contexts still parse empty-name `op<>` expressions.
+    // Note: in compound `{ ... }` bodies, `body` is a repeated field (one entry
+    // per statement); consumers should use `children_by_field_name("body")`.
     pattern_decl: $ => seq(
       'Pattern',
       optional(field('name', $.identifier)),
@@ -416,14 +423,14 @@ export default grammar({
     string: $ => seq(
       '"',
       repeat(choice(
-        token.immediate(prec(1, /[^"\\\n\x0b\x0c]+/)),
+        token.immediate(prec(1, /[^"\\\r\n\x0b\x0c]+/)),
         $.escape_sequence,
         $.invalid_escape,
       )),
       token.immediate('"'),
     ),
     escape_sequence: $ => token.immediate(seq('\\', choice(/["\\nt]/, /[0-9a-fA-F]{2}/))),
-    invalid_escape: $ => token.immediate(seq('\\', /[^\n\x0b\x0c]/)),
+    invalid_escape: $ => token.immediate(seq('\\', /[^\r\n\x0b\x0c]/)),
 
     comment: $ => token(seq('//', /[^\r\n]*/)),
   },

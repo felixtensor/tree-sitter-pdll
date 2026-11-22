@@ -190,6 +190,19 @@ Rewrite Bar() [{
       (code_block_content))))
 
 ==================
+code_block: opaque backslash escapes inside block
+==================
+Constraint Foo() [{ return "\q"; }];
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (code_block
+      (code_block_content))))
+
+==================
 identifier: leading underscore
 ==================
 Pattern {
