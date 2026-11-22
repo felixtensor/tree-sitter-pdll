@@ -13,9 +13,95 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-22
+
+Full alignment with upstream LLVM MLIR PDLL (`Lexer.cpp` and `Parser.cpp`),
+backed by a minimal C11 external scanner for `[{…}]` block strings, named AST
+fields across grammar rules, field-based queries, refreshed `tree-sitter 0.27.2`
+binding templates, and expanded corpus and highlight test coverage.
+
+### Breaking AST changes
+
+- Multi-result `Constraint` / `Rewrite` return types (`-> (Value, Attr)`) now
+  emit `(tuple_type …)` directly under `constraint_decl` / `rewrite_decl`
+  instead of wrapping it in an extra `(type_constraint (tuple_type …))`.
+- `op_name` no longer accepts double-quoted strings (`op<"foo.bar">`) or
+  single-segment names (`op<outer>`), matching MLIR's qualified `dialect.op`
+  requirement.
+- `[{…}]` blocks in non-native positions (`#include`, `attr<…>`, `type<…>`, and
+  `op_attribute` keys) now emit a dedicated `(string_block)` node, while native
+  `Constraint` / `Rewrite` bodies continue to emit `(code_block
+  (code_block_content))` so C++ injection stays scoped to native code.
+- Previously accepted invalid PDLL forms are now rejected to match MLIR
+  `Parser.cpp`: empty `-> ()` and single named `-> (a: Value)` / `-> a: Value`
+  return types, `type_expr` / `attr_expr` inside `tuple_type`, parameterized
+  `Value<…>` / `Attr<…>` / `[…]` / `(…)` in argument or return positions,
+  empty `op<> {}` attribute dicts, bare `string` / `integer` literals as general
+  expressions, bare `_` outside anonymous `_: Type` variable definitions,
+  postfix member access on anonymous `_: Type` variables (`_: Op.0`), `return`
+  inside `Pattern` / `rewrite … with {}`, `erase` / `replace` / `rewrite` inside
+  `Constraint`, raw newlines inside `"…"` strings, and reserved or dependent
+  keywords where MLIR requires plain identifiers.
+
+### Added
+
+- **scanner:** add a stateless C11 external scanner (`src/scanner.c`) for
+  `[{…}]` block bodies, handling consecutive closing braces (`}}]`, `}\n}]`),
+  comments, and newlines deterministically with zero LR conflicts.
+- **fields:** add named `field(...)` annotations across declarations, type
+  constraints, statements, expressions, and operation nodes (`name`,
+  `parameters`, `return_type`, `body`, `metadata`, `type`, `value`, `target`,
+  `replacement`, `object`, `member`, `function`, `arguments`, `operands`,
+  `attributes`, `results`, `path`, `constraint`, `content`), exposed in
+  `src/node-types.json` and usable via `child_by_field_name` in all bindings.
+- **grammar:** support all remaining valid MLIR PDLL constructs:
+  - `[{…}]` string blocks (`string_block`) in `#include`, `attr<…>`, `type<…>`,
+    and `op_attribute` keys.
+  - Double-quoted `"…"` bodies on native `Constraint` / `Rewrite` declarations.
+  - `Rewrite` lambda bodies containing `erase`, `replace`, or `rewrite`
+    statements (both top-level and inline).
+  - Empty angle brackets in `Op<>` type constraints.
+  - Inline `Constraint` declarations in type-constraint positions (`let`,
+    `[…]`, arguments, results, and `variable_def`).
+  - Unified inline `Constraint` / `Rewrite` declarations in expression position
+    and extended `call_expr` callees (`member_access_expr`, `call_expr`,
+    `tuple_expr`, contextual keywords, and callable inline declarations).
+- **tests & CI:** expand corpus coverage from 162 to 223 tests (including 79
+  error cases and `test/corpus/08-fields.txt`), add
+  `test/highlight/declarations/blocks_and_lambdas.pdll` (20 assertions), and
+  assert `src/scanner.c` inclusion in the npm package check.
+
+### Fixed
+
+- **strings & comments:** wrap double-quoted string content, escapes, and
+  closing quote in `token.immediate`, preventing `extras` (`//` comments and
+  `\n`/`\v`/`\f`) from splitting or sneaking inside `"…"` literals; stop
+  `comment` before `\r` as well as `\n` for CRLF files.
+- **keywords & identifiers:** reserve all 20 MLIR PDLL keywords via `reserved`
+  from a single keyword list while allowing contextual keywords (`op`, `attr`,
+  `type`, `benefit`, `recursion`) only where MLIR permits them; exclude bare
+  `_` from general `identifier` matching.
+- **queries:** migrate `highlights.scm`, `locals.scm`, and `tags.scm` to named
+  field selectors (`name:`, `function:`, `member:`) so anonymous lambda bodies
+  (`Constraint(v: Value) => v`), attribute values (`{ key = myVal }`), and
+  parameterized type constraints (`Attr<myType>` / `Value<myType>`) are never
+  misclassified; highlight `member_access_expr` members and
+  `named_tuple_element` labels as `@property`; record non-`_` inline
+  `variable_def` bindings in `locals.scm`; add `(string_block)` to
+  `highlights.scm`, `folds.scm`, and `indents.scm`.
+
 ### Changed
+
+- **grammar:** compact `grammar.js` layout and add `.prettierignore` to preserve
+  concise tree-sitter DSL formatting.
+- **bindings:** refresh C/CMake/Makefile, Rust (edition 2024, `tree-sitter`
+  0.27.2, and valid PDLL doctest), Node (Windows relative import, Bun
+  standalone, and async load test), Python (lazy resource import and sdist
+  globs), Swift (5.6 `Context.packageDirectory` and `swift-tree-sitter` 0.10),
+  and Zig templates from `tree-sitter` 0.27.2.
 - **CI:** install the tree-sitter CLI version `package-lock.json` resolves, so
-  Dependabot's npm updates move CI with them.
+  Dependabot's npm updates move CI with them, and bump `tree-sitter-cli` to
+  `0.27.2`.
 
 ## [0.1.1] - 2026-07-10
 
@@ -88,6 +174,7 @@ Initial tagged grammar.
 - Example corpus from the upstream `llvm-project` `mlir/test/mlir-pdll` suite.
 - C, Go, Node, Python, Rust, Swift, and Zig bindings.
 
-[Unreleased]: https://github.com/felixtensor/tree-sitter-pdll/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/felixtensor/tree-sitter-pdll/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/felixtensor/tree-sitter-pdll/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/felixtensor/tree-sitter-pdll/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/felixtensor/tree-sitter-pdll/releases/tag/v0.1.0
