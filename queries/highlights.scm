@@ -1,10 +1,10 @@
 ;; ---------------------------------------------------------------------------
 ;; PDLL syntax highlighting
 ;; For Neovim (nvim-treesitter), Helix, Zed, and other tree-sitter-compatible
-;; editors. Captures useuse standard tree-sitter names plus three intentional,intentional,
+;; editors. Captures use standard tree-sitter names plus three intentional,
 ;; documented semantic extensions — @keyword.import, @type.definition, and
-;; @variable.readonly — which carry clearer editor semantics and fall backwhich carry clearer editor semantics and fall back
-;; cleanlycleanly toto @keyword,@keyword, @type,@type, andand @variable@variable inin thethe defaultdefault CLI themeCLI theme.
+;; @variable.readonly — which carry clearer editor semantics and fall back
+;; cleanly to @keyword, @type, and @variable in the default CLI theme.
 ;;
 ;; tree-sitter highlighting is last-match-wins: the broad (identifier) and
 ;; (string) fallbacks appear first, and the specific roles below override them.
