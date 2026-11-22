@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.2] - 2026-11-22
 
-Full alignment with upstream LLVM MLIR PDLL (`Lexer.cpp` and `Parser.cpp`),
+Broad alignment with upstream LLVM MLIR PDLL (`Lexer.cpp` and `Parser.cpp`),
 backed by a minimal C11 external scanner for `[{…}]` block strings, named AST
 fields across grammar rules, field-based queries, refreshed `tree-sitter 0.27.2`
 binding templates, and expanded corpus and highlight test coverage.
@@ -40,8 +40,12 @@ binding templates, and expanded corpus and highlight test coverage.
   expressions, bare `_` outside anonymous `_: Type` variable definitions,
   postfix member access on anonymous `_: Type` variables (`_: Op.0`), `return`
   inside `Pattern` / `rewrite … with {}`, `erase` / `replace` / `rewrite` inside
-  `Constraint`, raw newlines inside `"…"` strings, and reserved or dependent
+  `Constraint`, raw `\r`/`\n` inside `"…"` strings, and reserved or dependent
   keywords where MLIR requires plain identifiers.
+  (For editor resilience and compact parser tables, compound `Pattern` bodies
+  remain permissive on statement order/presence, `Constraint`/`Rewrite` bodies
+  do not enforce `return` placement, `Rewrite` contexts still parse empty-name
+  `op<>`, and `[{…}]` blocks treat backslashes as opaque payload.)
 
 ### Added
 
@@ -53,7 +57,9 @@ binding templates, and expanded corpus and highlight test coverage.
   `parameters`, `return_type`, `body`, `metadata`, `type`, `value`, `target`,
   `replacement`, `object`, `member`, `function`, `arguments`, `operands`,
   `attributes`, `results`, `path`, `constraint`, `content`), exposed in
-  `src/node-types.json` and usable via `child_by_field_name` in all bindings.
+  `src/node-types.json` and usable via `child_by_field_name` /
+  `children_by_field_name` (compound `{…}` bodies expose one `body` entry per
+  statement).
 - **grammar:** support all remaining valid MLIR PDLL constructs:
   - `[{…}]` string blocks (`string_block`) in `#include`, `attr<…>`, `type<…>`,
     and `op_attribute` keys.
@@ -66,16 +72,17 @@ binding templates, and expanded corpus and highlight test coverage.
   - Unified inline `Constraint` / `Rewrite` declarations in expression position
     and extended `call_expr` callees (`member_access_expr`, `call_expr`,
     `tuple_expr`, contextual keywords, and callable inline declarations).
-- **tests & CI:** expand corpus coverage from 162 to 223 tests (including 79
-  error cases and `test/corpus/08-fields.txt`), add
-  `test/highlight/declarations/blocks_and_lambdas.pdll` (20 assertions), and
-  assert `src/scanner.c` inclusion in the npm package check.
+- **tests & CI:** expand corpus coverage from 162 to 225 tests (including 80
+  error cases and `test/corpus/08-fields.txt`), expand `test/highlight/` to 6
+  domain fixtures (170 assertions across literals, declarations, types,
+  expressions, disambiguation, and locals scoping), and assert `src/scanner.c`
+  inclusion in the npm package check.
 
 ### Fixed
 
 - **strings & comments:** wrap double-quoted string content, escapes, and
   closing quote in `token.immediate`, preventing `extras` (`//` comments and
-  `\n`/`\v`/`\f`) from splitting or sneaking inside `"…"` literals; stop
+  `\r`/`\n`/`\v`/`\f`) from splitting or sneaking inside `"…"` literals; stop
   `comment` before `\r` as well as `\n` for CRLF files.
 - **keywords & identifiers:** reserve all 20 MLIR PDLL keywords via `reserved`
   from a single keyword list while allowing contextual keywords (`op`, `attr`,
@@ -85,10 +92,14 @@ binding templates, and expanded corpus and highlight test coverage.
   field selectors (`name:`, `function:`, `member:`) so anonymous lambda bodies
   (`Constraint(v: Value) => v`), attribute values (`{ key = myVal }`), and
   parameterized type constraints (`Attr<myType>` / `Value<myType>`) are never
-  misclassified; highlight `member_access_expr` members and
-  `named_tuple_element` labels as `@property`; record non-`_` inline
-  `variable_def` bindings in `locals.scm`; add `(string_block)` to
-  `highlights.scm`, `folds.scm`, and `indents.scm`.
+  misclassified; narrow `locals.scm` `@local.reference` to explicit reference
+  slots so same-named local bindings no longer hijack `op<a.b>`, `{ key = v }`,
+  `t.first`, or `(first = v)` highlights; highlight `member_access_expr` members
+  and `named_tuple_element` labels as `@property`, member calls `t.helper(x)` as
+  `@function`, and anonymous `_` placeholders as `@variable.builtin`; record
+  non-`_` inline `variable_def` bindings in `locals.scm`; add `(string_block)`
+  to `highlights.scm`, `folds.scm`, and `indents.scm`, and add `@indent.end` to
+  `indents.scm`.
 
 ### Changed
 
