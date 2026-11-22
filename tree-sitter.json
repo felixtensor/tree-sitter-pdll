@@ -6,12 +6,14 @@
       "camelcase": "PDLL",
       "title": "PDLL",
       "scope": "source.pdll",
-      "file-types": ["pdll"],
-      "injection-regex": "^pdll$",
+      "file-types": [
+        "pdll"
+      ],
       "highlights": "queries/highlights.scm",
       "injections": "queries/injections.scm",
       "locals": "queries/locals.scm",
       "tags": "queries/tags.scm",
+      "injection-regex": "^pdll$",
       "class-name": "TreeSitterPdll"
     }
   ],

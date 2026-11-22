@@ -1,6 +1,7 @@
 LANGUAGE_NAME := tree-sitter-pdll
 HOMEPAGE_URL := https://github.com/felixtensor/tree-sitter-pdll
 VERSION := 0.1.1
+DESCRIPTION := PDLL grammar for tree-sitter
 
 # repository
 SRC_DIR := src

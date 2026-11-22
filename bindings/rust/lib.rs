@@ -5,6 +5,9 @@
 //!
 //! ```
 //! let code = r#"
+//! Pattern {
+//!   erase op<test.op>;
+//! }
 //! "#;
 //! let mut parser = tree_sitter::Parser::new();
 //! let language = tree_sitter_pdll::LANGUAGE;
@@ -15,12 +18,12 @@
 //! assert!(!tree.root_node().has_error());
 //! ```
 //!
-//! [`Parser`]: https://docs.rs/tree-sitter/0.26.11/tree_sitter/struct.Parser.html
+//! [`Parser`]: https://docs.rs/tree-sitter/0.27.2/tree_sitter/struct.Parser.html
 //! [tree-sitter]: https://tree-sitter.github.io/
 
 use tree_sitter_language::LanguageFn;
 
-extern "C" {
+unsafe extern "C" {
     fn tree_sitter_pdll() -> *const ();
 }
 
