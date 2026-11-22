@@ -3,8 +3,9 @@
 ;;
 ;; PDLL has no `region` node, so the brace-bearing declaration / statement nodes
 ;; and op attribute dicts drive indentation; the closing `}` returns to the
-;; parent level. Native code blocks, strings and comments are ignored — their
-;; contents belong to the injected language (C++) or are opaque.
+;; parent level and ends the block. Native code blocks, strings and comments
+;; are ignored — their contents belong to the injected language (C++) or are
+;; opaque.
 ;; ---------------------------------------------------------------------------
 
 [
@@ -15,6 +16,6 @@
   (op_attributes)
 ] @indent.begin
 
-"}" @indent.branch
+"}" @indent.branch @indent.end
 
 [(code_block) (string) (string_block) (comment)] @indent.ignore
