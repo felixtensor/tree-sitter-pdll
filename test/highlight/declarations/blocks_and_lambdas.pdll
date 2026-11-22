@@ -1,0 +1,32 @@
+#include [{ops.td}]
+// <- keyword.import
+//       ^ string
+
+Pattern Foo {
+  let myType = type<[{i32}]>;
+//                  ^ string
+  let x: Attr<myType>;
+//       ^ type.builtin
+//            ^ variable.readonly
+  let y: MyConstraint;
+//       ^ type
+  let c = Constraint(v: Value) => v;
+//        ^ keyword
+//                   ^ variable.parameter
+//                                ^ variable.parameter
+  let r = Rewrite(v: Value) => myType;
+//        ^ keyword
+//                             ^ variable.readonly
+  let t = (first = myType, y);
+//         ^ property
+//                 ^ variable.readonly
+  let m = t.first;
+//        ^ variable.readonly
+//          ^ property
+  erase op<a.b> { key = myType, [{blk}] = myType };
+//         ^ constant
+//                ^ attribute
+//                      ^ variable.readonly
+//                              ^ attribute
+//                                        ^ variable.readonly
+}

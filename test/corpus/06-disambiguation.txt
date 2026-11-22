@@ -202,47 +202,6 @@ Pattern {
         (type_constraint)))))
 
 ==================
-disambig: empty tuple as constraint result
-==================
-Constraint Foo() -> ();
----
-
-(source_file
-  (constraint_decl
-    (identifier)
-    (argument_list)
-    (type_constraint
-      (tuple_type))))
-
-==================
-disambig: op expression string vs identifier name
-==================
-Pattern {
-  let a = op<"toy.add">;
-  let b = op<toy.add>;
-  erase _: Op;
-}
----
-
-(source_file
-  (pattern_decl
-    (let_statement
-      (identifier)
-      (op_expr
-        (op_name
-          (string))))
-    (let_statement
-      (identifier)
-      (op_expr
-        (op_name
-          (identifier)
-          (identifier))))
-    (erase_statement
-      (variable_def
-        (identifier)
-        (type_constraint)))))
-
-==================
 disambig: op as variable in expression (not op<>)
 ==================
 Pattern {
@@ -258,3 +217,84 @@ Pattern {
       (type_constraint))
     (erase_statement
       (identifier))))
+
+==================
+disambig: benefit and recursion as identifiers and op names
+==================
+Pattern {
+  let benefit = op<benefit.recursion>;
+  let recursion: Op = benefit;
+  erase recursion;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (op_expr
+        (op_name
+          (identifier)
+          (identifier))))
+    (let_statement
+      (identifier)
+      (type_constraint)
+      (identifier))
+    (erase_statement
+      (identifier))))
+
+==================
+disambig: op as call callee vs op expression
+==================
+Pattern {
+  let x = op(y);
+  let z = op<foo.bar>(x);
+  erase z;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (call_expr
+        (identifier)
+        (expression_list
+          (identifier))))
+    (let_statement
+      (identifier)
+      (op_expr
+        (op_name
+          (identifier)
+          (identifier))
+        (expression_list
+          (identifier))))
+    (erase_statement
+      (identifier))))
+
+==================
+disambig: lambda body consumes trailing call arguments
+==================
+Pattern {
+  let c = Constraint(v: Value) => v(x);
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (constraint_decl
+        (argument_list
+          (argument
+            (identifier)
+            (type_constraint)))
+        (call_expr
+          (identifier)
+          (expression_list
+            (identifier)))))
+    (erase_statement
+      (variable_def
+        (identifier)
+        (type_constraint)))))

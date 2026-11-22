@@ -13,6 +13,7 @@
 
 ;; ── Literals ────────────────────────────────────────────────────────────────
 (string) @string
+(string_block) @string
 ;; Escapes overlay on the string; a malformed escape is flagged.
 (escape_sequence) @string.escape
 (invalid_escape) @error
@@ -49,6 +50,11 @@
   ["Op" "Attr" "Type" "Value" "ValueRange" "TypeRange"] @type.builtin)
 ;; A bare identifier in constraint position is a user constraint/type reference.
 (type_constraint (identifier) @type)
+;; Parameterized builtin constraints (`Attr<myType>`, `Value<myType>`) carry a
+;; value expression, not a user constraint name.
+(type_constraint
+  ["Attr" "Value" "ValueRange"]
+  (identifier) @variable.readonly)
 
 ;; ── Parameters ──────────────────────────────────────────────────────────────
 ;; `name: Type` in argument lists and tuple types.
@@ -59,18 +65,22 @@
 ;; Constraint names read as types — they are used in type position, e.g.
 ;; `x: MyConstraint` — while patterns and rewrites read as functions. The
 ;; constraint name is the type's definition site; its uses stay @type (above).
-(pattern_decl (identifier) @function)
-(rewrite_decl (identifier) @function)
-(constraint_decl (identifier) @type.definition)
+;; Anchored with `.` so anonymous lambda bodies (`Constraint(v: Value) => v`)
+;; are not mistaken for declaration names.
+(pattern_decl . (identifier) @function)
+(rewrite_decl . (identifier) @function)
+(constraint_decl . (identifier) @type.definition)
 
 ;; ── Calls & operation names ─────────────────────────────────────────────────
-(call_expr (identifier) @function)
-(negated_call_expr (identifier) @function)
+(call_expr . (identifier) @function)
+(negated_call_expr . (identifier) @function)
 ;; Op names in op<ns.name> / Op<ns.name> — symbolic constants (matching the
 ;; LLVM PDLL `enummember` intent).
 (op_name (identifier) @constant)
-(op_name (string) @constant)
 
-;; ── Attribute keys ──────────────────────────────────────────────────────────
-(op_attribute (identifier) @attribute)
-(op_attribute (string) @attribute)
+;; ── Member access, tuple labels & attribute keys ────────────────────────────
+(member_access_expr "." (identifier) @property)
+(named_tuple_element . (identifier) @property)
+(op_attribute . (identifier) @attribute)
+(op_attribute . (string) @attribute)
+(op_attribute . (string_block) @attribute)

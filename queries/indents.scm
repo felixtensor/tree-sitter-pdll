@@ -17,4 +17,4 @@
 
 "}" @indent.branch
 
-[(code_block) (string) (comment)] @indent.ignore
+[(code_block) (string) (string_block) (comment)] @indent.ignore

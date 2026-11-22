@@ -13,24 +13,66 @@ directive failure: include with angle filename
 ---
 
 ==================
-directive failure: code block as include path
-:error
-==================
-#include [{}]
----
-
-==================
-attr failure: code block instead of string
-:error
-==================
-Pattern { let a = attr<[{}]>; }
----
-
-==================
 op failure: code block as op name
 :error
 ==================
 Pattern { erase op<[{}]>; }
+---
+
+==================
+op failure: quoted string as op name
+:error
+==================
+Pattern { erase op<"foo.bar">; }
+---
+
+==================
+op failure: single segment op name
+:error
+==================
+Pattern { erase op<outer>; }
+---
+
+==================
+op failure: empty attribute dict
+:error
+==================
+Pattern { erase op<foo.bar> {}; }
+---
+
+==================
+type failure: quoted string in Op constraint
+:error
+==================
+Pattern { let x: Op<"toy.add">; erase x; }
+---
+
+==================
+type failure: single segment Op constraint
+:error
+==================
+Pattern { let x: Op<builtin>; erase x; }
+---
+
+==================
+type failure: empty constraint list
+:error
+==================
+Pattern { let x: []; erase _: Op; }
+---
+
+==================
+type failure: nested constraint list
+:error
+==================
+Pattern { let x: [[Op]]; erase _: Op; }
+---
+
+==================
+type failure: tuple type in variable constraint
+:error
+==================
+Pattern { let x: (Value, Attr); erase _: Op; }
 ---
 
 ==================
@@ -41,10 +83,28 @@ Constraint Cst() [{
 ---
 
 ==================
+string failure: unclosed code block with braces
+:error
+==================
+Constraint Cst() [{ if (a) { b(); }
+---
+
+==================
 string failure: unclosed double-quoted string
 :error
 ==================
 Constraint Cst() "
+---
+
+==================
+string failure: raw newline in double-quoted string
+:error
+==================
+Pattern {
+  let a = attr<"foo
+bar">;
+  erase _: Op;
+}
 ---
 
 ==================
@@ -76,6 +136,36 @@ Pattern => op<>;
 ---
 
 ==================
+pattern failure: return statement in pattern
+:error
+==================
+Pattern {
+  return _: Value;
+}
+---
+
+==================
+pattern failure: return statement in rewrite statement
+:error
+==================
+Pattern {
+  rewrite r: Op with {
+    return r;
+  };
+}
+---
+
+==================
+pattern failure: inline forward constraint decl
+:error
+==================
+Pattern {
+  Constraint External();
+  erase _: Op;
+}
+---
+
+==================
 stmt failure: top-level expression
 :error
 ==================
@@ -101,6 +191,55 @@ stmt failure: let with number instead of name
 :error
 ==================
 Pattern { let 5; }
+---
+
+==================
+stmt failure: integer as general expression
+:error
+==================
+Pattern { let x = 10; erase _: Op; }
+---
+
+==================
+stmt failure: string as general expression
+:error
+==================
+Pattern { let x = "hello"; erase _: Op; }
+---
+
+==================
+stmt failure: integer in ValueRange type constraint
+:error
+==================
+Pattern { let x: ValueRange<10>; erase _: Op; }
+---
+
+==================
+stmt failure: bare underscore in let
+:error
+==================
+Pattern { let _; erase _: Op; }
+---
+
+==================
+stmt failure: typed underscore in let
+:error
+==================
+Pattern { let _: Op; erase _: Op; }
+---
+
+==================
+stmt failure: bare underscore as expression
+:error
+==================
+Pattern { erase _; }
+---
+
+==================
+stmt failure: member access on anonymous underscore variable
+:error
+==================
+Pattern { let v = _: Op.0; erase _: Op; }
 ---
 
 ==================
@@ -137,6 +276,15 @@ stmt failure: not without call arguments
 ==================
 Pattern {
   not op<>;
+}
+---
+
+==================
+stmt failure: not with dependent keyword callee
+:error
+==================
+Pattern {
+  not op(x);
 }
 ---
 
@@ -193,6 +341,55 @@ Pattern {
 ---
 
 ==================
+keyword failure: reserved keyword as variable name
+:error
+==================
+Pattern { let return: Op; erase _: Op; }
+---
+
+==================
+keyword failure: OpName as variable name
+:error
+==================
+Pattern { let OpName: Op; erase _: Op; }
+---
+
+==================
+keyword failure: dependent keyword as pattern name
+:error
+==================
+Pattern op { erase _: Op; }
+---
+
+==================
+keyword failure: dependent keyword as constraint name
+:error
+==================
+Constraint op();
+---
+
+==================
+keyword failure: underscore as pattern name
+:error
+==================
+Pattern _ { erase _: Op; }
+---
+
+==================
+keyword failure: underscore as constraint name
+:error
+==================
+Constraint _();
+---
+
+==================
+keyword failure: underscore as argument name
+:error
+==================
+Constraint Foo(_: Value);
+---
+
+==================
 constraint failure: missing name
 :error
 ==================
@@ -228,10 +425,75 @@ Constraint Foo(arg: Value{}
 ---
 
 ==================
+constraint failure: parameterized Value in argument
+:error
+==================
+Constraint Foo(x: Value<type<"i32">>);
+---
+
+==================
+constraint failure: constraint list in argument
+:error
+==================
+Constraint Foo(x: [Op, Op]);
+---
+
+==================
+constraint failure: tuple type in argument
+:error
+==================
+Constraint Foo(x: (Value, Attr));
+---
+
+==================
 constraint failure: result list missing close paren
 :error
 ==================
 Constraint Foo() -> (Op{};
+---
+
+==================
+constraint failure: empty tuple result type
+:error
+==================
+Constraint Foo() -> ();
+---
+
+==================
+constraint failure: unparenthesized named result
+:error
+==================
+Constraint Foo() -> a: Value;
+---
+
+==================
+constraint failure: single named tuple result
+:error
+==================
+Constraint Foo() -> (a: Value);
+---
+
+==================
+constraint failure: parameterized Value in result
+:error
+==================
+Constraint Foo() -> Value<type<"i32">>;
+---
+
+==================
+constraint failure: constraint list in result
+:error
+==================
+Constraint Foo() -> [Op, Op];
+---
+
+==================
+constraint failure: erase statement in constraint body
+:error
+==================
+Constraint Foo() {
+  erase _: Op;
+}
 ---
 
 ==================
@@ -319,5 +581,14 @@ rewrite failure: inline statement missing semicolon
 ==================
 Rewrite Outer() {
   Rewrite() {}
+}
+---
+
+==================
+rewrite failure: inline lambda erase missing semicolon
+:error
+==================
+Rewrite Outer() {
+  Rewrite(op: Op) => erase op
 }
 ---

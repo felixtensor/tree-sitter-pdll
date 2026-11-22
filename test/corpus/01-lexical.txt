@@ -9,6 +9,16 @@ include: single td header
     (string)))
 
 ==================
+include: string block path
+==================
+#include [{ops.td}]
+---
+
+(source_file
+  (include_directive
+    (string_block)))
+
+==================
 include: multiple directives
 ==================
 #include "ops.td"
@@ -34,12 +44,14 @@ string: plain quoted
 ==================
 string: escaped characters
 ==================
-#include "path\\to\"file\n"
+#include "path\\to\"file\n\t\41"
 ---
 
 (source_file
   (include_directive
     (string
+      (escape_sequence)
+      (escape_sequence)
       (escape_sequence)
       (escape_sequence)
       (escape_sequence))))
@@ -64,6 +76,45 @@ string: empty quoted
 (source_file
   (include_directive
     (string)))
+
+==================
+string: containing double slash
+==================
+Pattern {
+  let a = attr<"// not a comment">;
+  let b = attr<"\n// still not a comment\n">;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (attr_expr
+        (string)))
+    (let_statement
+      (identifier)
+      (attr_expr
+        (string
+          (escape_sequence)
+          (escape_sequence))))
+    (erase_statement
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+code_block: empty
+==================
+Constraint Foo() [{}];
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (code_block)))
 
 ==================
 code_block: as constraint body
@@ -106,6 +157,58 @@ Rewrite Bar() [{ return T{v[i]}; }];
     (argument_list)
     (code_block
       (code_block_content))))
+
+==================
+code_block: consecutive closing braces before terminator
+==================
+Rewrite Bar() [{ if (a) { b(); }}];
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list)
+    (code_block
+      (code_block_content))))
+
+==================
+code_block: multiline ending with brace and internal comment
+==================
+Rewrite Bar() [{
+  // C++ comment stays inside code_block_content
+  if (a) {
+    b();
+  }
+}];
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list)
+    (code_block
+      (code_block_content))))
+
+==================
+identifier: leading underscore
+==================
+Pattern {
+  let _foo: Op;
+  let __: Op;
+  erase _foo;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (let_statement
+      (identifier)
+      (type_constraint))
+    (erase_statement
+      (identifier))))
 
 ==================
 comment: top-level

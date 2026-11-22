@@ -11,18 +11,19 @@ Constraint Foo() -> Op;
     (type_constraint)))
 
 ==================
-type: Op with string name
+type: Op with empty angle
 ==================
-Constraint Foo() -> Op<"toy.add">;
+Constraint Foo(x: Op<>) -> Op<>;
 ---
 
 (source_file
   (constraint_decl
     (identifier)
-    (argument_list)
-    (type_constraint
-      (op_name
-        (string)))))
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (type_constraint)))
 
 ==================
 type: Op with identifier name
@@ -221,6 +222,92 @@ Constraint UsesFoo(x: IsFoo);
           (identifier))))))
 
 ==================
+type: inline constraint in let and constraint list
+==================
+Pattern {
+  let a: Constraint(v: Value) { op<my.foo>(v); };
+  let b: [Op, Constraint(o: Op) => o];
+  erase _: Constraint(o: Op) [{ return success(); }];
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_constraint
+        (constraint_decl
+          (argument_list
+            (argument
+              (identifier)
+              (type_constraint)))
+          (op_expr
+            (op_name
+              (identifier)
+              (identifier))
+            (expression_list
+              (identifier))))))
+    (let_statement
+      (identifier)
+      (type_constraint
+        (type_constraint)
+        (type_constraint
+          (constraint_decl
+            (argument_list
+              (argument
+                (identifier)
+                (type_constraint)))
+            (identifier)))))
+    (erase_statement
+      (variable_def
+        (identifier)
+        (type_constraint
+          (constraint_decl
+            (argument_list
+              (argument
+                (identifier)
+                (type_constraint)))
+            (code_block
+              (code_block_content))))))))
+
+==================
+type: inline constraint in argument and result
+==================
+Constraint Outer(x: Constraint(v: Value) { op<my.foo>(v); }) -> Constraint(v: Value) { op<my.bar>(v); };
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint
+          (constraint_decl
+            (argument_list
+              (argument
+                (identifier)
+                (type_constraint)))
+            (op_expr
+              (op_name
+                (identifier)
+                (identifier))
+              (expression_list
+                (identifier)))))))
+    (type_constraint
+      (constraint_decl
+        (argument_list
+          (argument
+            (identifier)
+            (type_constraint)))
+        (op_expr
+          (op_name
+            (identifier)
+            (identifier))
+          (expression_list
+            (identifier)))))))
+
+==================
 type: list with multiple constraints
 ==================
 Pattern {
@@ -251,24 +338,39 @@ Constraint Foo() -> (a: Value, b: Attr);
   (constraint_decl
     (identifier)
     (argument_list)
-    (type_constraint
-      (tuple_type
-        (named_type_constraint
-          (identifier)
-          (type_constraint))
-        (named_type_constraint
-          (identifier)
-          (type_constraint))))))
+    (tuple_type
+      (named_type_constraint
+        (identifier)
+        (type_constraint))
+      (named_type_constraint
+        (identifier)
+        (type_constraint)))))
 
 ==================
-type: tuple empty
+type: tuple single unnamed
 ==================
-Constraint Foo() -> ();
+Constraint Foo() -> (Value);
 ---
 
 (source_file
   (constraint_decl
     (identifier)
     (argument_list)
-    (type_constraint
-      (tuple_type))))
+    (tuple_type
+      (type_constraint))))
+
+==================
+type: tuple mixed named and unnamed
+==================
+Constraint Foo() -> (Value, b: Attr);
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (tuple_type
+      (type_constraint)
+      (named_type_constraint
+        (identifier)
+        (type_constraint)))))
