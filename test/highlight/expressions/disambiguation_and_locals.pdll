@@ -1,0 +1,51 @@
+Constraint ContextualKeywords(op: Op, attr: Attr, type: Type) {
+//                            ^ variable.parameter
+//                                ^ type.builtin
+//                                    ^ variable.parameter
+//                                          ^ type.builtin
+//                                                ^ variable.parameter
+//                                                      ^ type.builtin
+  let x = op<test.op>(op) { attr = attr, type = type };
+//        ^ keyword
+//           ^ constant
+//                    ^ variable.parameter
+//                          ^ attribute
+//                                 ^ variable.parameter
+//                                       ^ attribute
+//                                              ^ variable.parameter
+  let a = attr<"1">;
+//        ^ keyword
+  let t = type<"i32">;
+//        ^ keyword
+  return (op, attr, type, a, t);
+//        ^ variable.parameter
+//            ^ variable.parameter
+//                  ^ variable.parameter
+}
+
+Pattern LocalsIsolation {
+  let a = attr<"1">;
+  let b = attr<"2">;
+  let key = attr<"3">;
+  let first = attr<"4">;
+  let benefit = a;
+//    ^ variable.readonly
+  let recursion = b;
+//    ^ variable.readonly
+  let t = (first = a, b);
+//         ^ property
+//                 ^ variable.readonly
+//                    ^ variable.readonly
+  let m = t.first;
+//          ^ property
+  let f = Constraint(v: Value) => v;
+//                   ^ variable.parameter
+//                                ^ variable.parameter
+  erase op<a.b> { key = a, a = b };
+//         ^ constant
+//           ^ constant
+//                ^ attribute
+//                      ^ variable.readonly
+//                         ^ attribute
+//                             ^ variable.readonly
+}

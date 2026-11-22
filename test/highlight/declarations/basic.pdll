@@ -8,9 +8,40 @@ Constraint HasFoo(op: Op);
 //                ^ variable.parameter
 //                    ^ type.builtin
 
+Constraint Pair(x: Value) -> (first: Value, second: Type) {
+// <- keyword
+//         ^ type.definition
+//              ^ variable.parameter
+//                 ^ type.builtin
+//                        ^ operator
+//                            ^ variable.parameter
+//                                   ^ type.builtin
+//                                          ^ variable.parameter
+//                                                  ^ type.builtin
+  return (x, x);
+//^ keyword
+//        ^ variable.parameter
+}
+
+Pattern NamedPattern with benefit(2), recursion {
+// <- keyword
+//      ^ function
+//                   ^ keyword
+//                        ^ keyword
+//                                ^ number
+//                                    ^ keyword
+  erase _: Op;
+//^ keyword
+//      ^ variable.builtin
+//         ^ type.builtin
+}
+
 Rewrite Build(root: Op) {
 // <- keyword
 //      ^ function
+//            ^ variable.parameter
+//                  ^ type.builtin
   erase root;
 //^ keyword
+//      ^ variable.parameter
 }

@@ -1,0 +1,51 @@
+Constraint UserConstraint(v: Value);
+
+Constraint ResultTypes(a: Op<>) -> (res: Value, kind: Attr);
+//                        ^ type.builtin
+//                                  ^ variable.parameter
+//                                       ^ type.builtin
+//                                              ^ variable.parameter
+//                                                    ^ type.builtin
+
+Pattern TypeConstraints {
+  let myType = type<"i32">;
+  let o1: Op;
+//        ^ type.builtin
+  let o2: Op<>;
+//        ^ type.builtin
+  let o3: Op<arith.addi>;
+//        ^ type.builtin
+//           ^ constant
+//                 ^ constant
+  let a1: Attr;
+//        ^ type.builtin
+  let a2: Attr<myType>;
+//        ^ type.builtin
+//             ^ variable.readonly
+  let t1: Type;
+//        ^ type.builtin
+  let v1: Value;
+//        ^ type.builtin
+  let v2: Value<myType>;
+//        ^ type.builtin
+//              ^ variable.readonly
+  let vr1: ValueRange;
+//         ^ type.builtin
+  let vr2: ValueRange<myType>;
+//         ^ type.builtin
+//                    ^ variable.readonly
+  let tr: TypeRange;
+//        ^ type.builtin
+  let u: UserConstraint;
+//       ^ type
+  let list: [UserConstraint, Op<test.op>, Constraint(v: Value) => v];
+//          ^ punctuation.bracket
+//           ^ type
+//                           ^ type.builtin
+//                              ^ constant
+//                                   ^ constant
+//                                        ^ keyword
+//                                                   ^ variable.parameter
+//                                                                ^ variable.parameter
+  erase o1;
+}

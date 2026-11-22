@@ -1,0 +1,58 @@
+Constraint Check(v: Value);
+Rewrite Helper(v: Value) -> Value;
+
+Pattern StatementsAndOps {
+  let ty = type<"i32">;
+//^ keyword
+//         ^ keyword
+//              ^ string
+  let tyBlk = type<[{i64}]>;
+//            ^ keyword
+//                 ^ string
+  let a = attr<"1 : i32">;
+//        ^ keyword
+//             ^ string
+  let aBlk = attr<[{2}]>;
+//           ^ keyword
+//                ^ string
+  let root = op<ns.src>(v: Value) { key = a, "k\n" = a, [{blk}] = a } -> (ty);
+//           ^ keyword
+//              ^ constant
+//                 ^ constant
+//                      ^ variable.readonly
+//                         ^ type.builtin
+//                                  ^ attribute
+//                                        ^ variable.readonly
+//                                           ^ attribute
+//                                             ^ string.escape
+//                                                      ^ attribute
+//                                                                    ^ operator
+//                                                                        ^ variable.readonly
+  not Check(v);
+//^ keyword
+//    ^ function
+//          ^ variable.readonly
+  let t = (helper = Helper, first = v);
+//         ^ property
+//                  ^ variable.readonly
+//                          ^ property
+  let called = t.helper(v);
+//               ^ function
+  let prop = t.first;
+//             ^ property
+  let idx = root.0;
+//               ^ number
+  rewrite root with {
+//^ keyword
+//             ^ keyword
+    replace op<ns.dst> with (called, prop);
+//  ^ keyword
+//          ^ keyword
+//             ^ constant
+//                     ^ keyword
+    erase _: Op;
+//  ^ keyword
+//        ^ variable.builtin
+//           ^ type.builtin
+  };
+}
