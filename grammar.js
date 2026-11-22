@@ -32,8 +32,11 @@ const commaSep = rule => optional(commaSep1(rule));
  * @param {string} keyword
  * @param {RuleOrLiteral} [name]
  */
-const user_decl_signature = ($, keyword, name = optional($.identifier)) => seq(
-  keyword, name, $.argument_list, optional(seq('->', $._result_type)),
+const user_decl_signature = ($, keyword, name = optional(field('name', $.identifier))) => seq(
+  keyword,
+  name,
+  field('parameters', $.argument_list),
+  optional(seq('->', field('return_type', $._result_type))),
 );
 
 // Shared native body (`[{ ... }]` or `"..."`), matching MLIR Token::isString().
@@ -76,45 +79,52 @@ export default grammar({
     _top_level_statement: $ => choice(
       $.include_directive, $.pattern_decl, $.constraint_decl, $.rewrite_decl,
     ),
-    include_directive: $ => seq('#include', $._string_literal),
+    include_directive: $ => seq('#include', field('path', $._string_literal)),
 
     // =========================================================================
     // Declarations
     // =========================================================================
     pattern_decl: $ => seq(
       'Pattern',
-      optional($.identifier),
-      optional($.pattern_metadata),
+      optional(field('name', $.identifier)),
+      optional(field('metadata', $.pattern_metadata)),
       choice(
         seq('{', repeat($._pattern_statement), '}'),
-        seq('=>', $._operation_rewrite_statement),
+        seq('=>', field('body', $._operation_rewrite_statement)),
       ),
     ),
     pattern_metadata: $ => seq('with', commaSep1(choice($.benefit_metadata, $.recursion_metadata))),
-    benefit_metadata: $ => seq('benefit', '(', $.integer, ')'),
+    benefit_metadata: $ => seq('benefit', '(', field('value', $.integer), ')'),
     recursion_metadata: $ => 'recursion',
 
     constraint_decl: $ => seq(
-      user_decl_signature($, 'Constraint', $.identifier),
+      user_decl_signature($, 'Constraint', field('name', $.identifier)),
       choice(
         seq('{', repeat($._constraint_statement), '}'),
-        seq('=>', $._expression, ';'),
-        seq(native_decl_body($), ';'),
+        seq('=>', field('body', $._expression), ';'),
+        seq(field('body', native_decl_body($)), ';'),
         ';',
       ),
     ),
     rewrite_decl: $ => seq(
-      user_decl_signature($, 'Rewrite', $.identifier),
+      user_decl_signature($, 'Rewrite', field('name', $.identifier)),
       choice(
         seq('{', repeat($._rewrite_statement), '}'),
-        seq('=>', choice($._operation_rewrite_statement, seq($._expression, ';'))),
-        seq(native_decl_body($), ';'),
+        seq('=>', choice(
+          field('body', $._operation_rewrite_statement),
+          seq(field('body', $._expression), ';'),
+        )),
+        seq(field('body', native_decl_body($)), ';'),
         ';',
       ),
     ),
 
     argument_list: $ => seq('(', commaSep($.argument), ')'),
-    argument: $ => seq($._identifier_or_keyword, ':', alias($._arg_result_type_constraint, $.type_constraint)),
+    argument: $ => seq(
+      field('name', $._identifier_or_keyword),
+      ':',
+      field('type', alias($._arg_result_type_constraint, $.type_constraint)),
+    ),
 
     // =========================================================================
     // Identifiers and keywords
@@ -146,27 +156,27 @@ export default grammar({
 
     // Single constraint in variable position (permits inline `<type-expr>`).
     type_constraint: $ => choice(
-      seq('Op', optional(seq('<', optional($.op_name), '>'))),
-      seq('Attr', optional(seq('<', $._expression, '>'))),
+      seq('Op', optional(seq('<', optional(field('name', $.op_name)), '>'))),
+      seq('Attr', optional(seq('<', field('type', $._expression), '>'))),
       'Type',
-      seq('Value', optional(seq('<', $._expression, '>'))),
-      seq('ValueRange', optional(seq('<', $._expression, '>'))),
+      seq('Value', optional(seq('<', field('type', $._expression), '>'))),
+      seq('ValueRange', optional(seq('<', field('type', $._expression), '>'))),
       'TypeRange',
-      alias($._inline_constraint_decl, $.constraint_decl),
-      $.identifier,
+      field('constraint', alias($._inline_constraint_decl, $.constraint_decl)),
+      field('name', $.identifier),
     ),
 
     // Single constraint in argument or result position: MLIR Parser.cpp forbids
     // inline `<type-expr>` on `Attr`, `Value`, and `ValueRange`.
     _arg_result_type_constraint: $ => choice(
-      seq('Op', optional(seq('<', optional($.op_name), '>'))),
+      seq('Op', optional(seq('<', optional(field('name', $.op_name)), '>'))),
       'Attr',
       'Type',
       'Value',
       'ValueRange',
       'TypeRange',
-      alias($._inline_constraint_decl, $.constraint_decl),
-      $.identifier,
+      field('constraint', alias($._inline_constraint_decl, $.constraint_decl)),
+      field('name', $.identifier),
     ),
 
     // Return signature after `->`: single unnamed constraint, or non-empty
@@ -190,7 +200,9 @@ export default grammar({
       alias($._arg_result_type_constraint, $.type_constraint),
     ),
     named_type_constraint: $ => seq(
-      $._identifier_or_keyword, ':', alias($._arg_result_type_constraint, $.type_constraint),
+      field('name', $._identifier_or_keyword),
+      ':',
+      field('type', alias($._arg_result_type_constraint, $.type_constraint)),
     ),
 
     // =========================================================================
@@ -199,22 +211,22 @@ export default grammar({
 
     // Pattern and `rewrite ... with { ... }` bodies forbid `return`.
     _pattern_statement: $ => choice(
-      $.let_statement,
-      $._operation_rewrite_statement,
-      seq($._expression, ';'),
+      field('body', $.let_statement),
+      field('body', $._operation_rewrite_statement),
+      seq(field('body', $._expression), ';'),
     ),
     // Constraint bodies forbid `erase`, `replace`, and `rewrite`.
     _constraint_statement: $ => choice(
-      $.let_statement,
-      $.return_statement,
-      seq($._expression, ';'),
+      field('body', $.let_statement),
+      field('body', $.return_statement),
+      seq(field('body', $._expression), ';'),
     ),
     // Rewrite bodies allow all statement kinds.
     _rewrite_statement: $ => choice(
-      $.let_statement,
-      $._operation_rewrite_statement,
-      $.return_statement,
-      seq($._expression, ';'),
+      field('body', $.let_statement),
+      field('body', $._operation_rewrite_statement),
+      field('body', $.return_statement),
+      seq(field('body', $._expression), ';'),
     ),
     _operation_rewrite_statement: $ => choice(
       $.erase_statement, $.replace_statement, $.rewrite_statement,
@@ -227,16 +239,17 @@ export default grammar({
     ),
 
     let_statement: $ => seq(
-      'let', $._identifier_or_keyword,
-      optional(seq(':', $._variable_constraint)),
-      optional(seq('=', $._expression)),
+      'let',
+      field('name', $._identifier_or_keyword),
+      optional(seq(':', field('type', $._variable_constraint))),
+      optional(seq('=', field('value', $._expression))),
       ';',
     ),
-    _erase_body: $ => seq('erase', $._expression),
+    _erase_body: $ => seq('erase', field('target', $._expression)),
     erase_statement: $ => seq($._erase_body, ';'),
     _replace_body: $ => seq(
-      'replace', $._expression, 'with',
-      choice($.replacement_list, $._replacement_expression),
+      'replace', field('target', $._expression), 'with',
+      field('replacement', choice($.replacement_list, $._replacement_expression)),
     ),
     replace_statement: $ => seq($._replace_body, ';'),
     _replacement_expression: $ => prec(PREC.lambda, choice(
@@ -251,11 +264,11 @@ export default grammar({
     )),
     replacement_list: $ => prec(PREC.replacement_list, seq('(', commaSep1($._expression), ')')),
     _rewrite_body: $ => seq(
-      'rewrite', $._expression, 'with',
+      'rewrite', field('target', $._expression), 'with',
       seq('{', repeat($._pattern_statement), '}'),
     ),
     rewrite_statement: $ => seq($._rewrite_body, ';'),
-    return_statement: $ => seq('return', $._expression, ';'),
+    return_statement: $ => seq('return', field('value', $._expression), ';'),
 
     // =========================================================================
     // Expressions
@@ -282,26 +295,30 @@ export default grammar({
 
     // `name: Type` in expression position (may take postfix `.member`, e.g. `x: Op.0`).
     variable_def: $ => prec(PREC.variable_def, seq(
-      $._identifier_or_keyword, ':', $._variable_constraint,
+      field('name', $._identifier_or_keyword), ':', field('type', $._variable_constraint),
     )),
     // Anonymous `_: Type` in expression position: MLIR Parser.cpp:1796 returns
     // before the postfix `.` / `(` loop, so `_: Op.0` is rejected.
     _anonymous_variable_def: $ => seq(
-      alias('_', $.identifier), ':', $._variable_constraint,
+      field('name', alias('_', $.identifier)), ':', field('type', $._variable_constraint),
     ),
 
     // Postfix `.name` / `.0` on an expression (`tuple.firstElt`, `op.0`, `foo().return`).
     member_access_expr: $ => prec.left(PREC.member_access, seq(
-      $._value_expression, '.', choice($._identifier_or_any_keyword, $.integer),
+      field('object', $._value_expression), '.', field('member', choice($._identifier_or_any_keyword, $.integer)),
     )),
 
     tuple_expr: $ => seq('(', commaSep($._tuple_element), ')'),
-    named_tuple_element: $ => seq($._identifier_or_keyword, '=', $._expression),
+    named_tuple_element: $ => seq(
+      field('name', $._identifier_or_keyword), '=', field('value', $._expression),
+    ),
     _tuple_element: $ => choice($.named_tuple_element, $._expression),
 
-    negated_call_expr: $ => seq('not', $.identifier, $.expression_list),
+    negated_call_expr: $ => seq(
+      'not', field('function', $.identifier), field('arguments', $.expression_list),
+    ),
     call_expr: $ => prec.left(PREC.call, seq(
-      choice(
+      field('function', choice(
         $.identifier,
         $._keyword_identifier,
         alias($._inline_callable_constraint_decl, $.constraint_decl),
@@ -309,32 +326,38 @@ export default grammar({
         $.tuple_expr,
         $.member_access_expr,
         $.call_expr,
-      ),
-      $.expression_list,
+      )),
+      field('arguments', $.expression_list),
     )),
 
     // Inline declarations callable directly (`Constraint(...) { ... }(x)` / `[{ ... }](x)`).
     // Lambda (`=>`) forms greedily consume trailing `(args)` into their body in MLIR Parser.cpp.
     _inline_callable_constraint_decl: $ => seq(
       user_decl_signature($, 'Constraint'),
-      choice(seq('{', repeat($._constraint_statement), '}'), native_decl_body($)),
+      choice(
+        seq('{', repeat($._constraint_statement), '}'),
+        field('body', native_decl_body($)),
+      ),
     ),
     _inline_callable_rewrite_decl: $ => seq(
       user_decl_signature($, 'Rewrite'),
-      choice(seq('{', repeat($._rewrite_statement), '}'), native_decl_body($)),
+      choice(
+        seq('{', repeat($._rewrite_statement), '}'),
+        field('body', native_decl_body($)),
+      ),
     ),
 
     // Inline declarations in expression/constraint/statement position (no forward decl).
     _inline_constraint_decl: $ => choice(
       $._inline_callable_constraint_decl,
-      prec.right(PREC.lambda, seq(user_decl_signature($, 'Constraint'), '=>', $._expression)),
+      prec.right(PREC.lambda, seq(user_decl_signature($, 'Constraint'), '=>', field('body', $._expression))),
     ),
     _inline_rewrite_decl: $ => choice(
       $._inline_callable_rewrite_decl,
       prec.right(PREC.lambda, seq(
         user_decl_signature($, 'Rewrite'),
         '=>',
-        choice($._inline_operation_rewrite_statement, $._expression),
+        field('body', choice($._inline_operation_rewrite_statement, $._expression)),
       )),
     ),
 
@@ -344,8 +367,10 @@ export default grammar({
     // Operation expressions
     // =========================================================================
     op_expr: $ => prec.right(seq(
-      'op', '<', optional($.op_name), '>',
-      optional($.expression_list), optional($.op_attributes), optional($.operation_result_list),
+      'op', '<', optional(field('name', $.op_name)), '>',
+      optional(field('operands', $.expression_list)),
+      optional(field('attributes', $.op_attributes)),
+      optional(field('results', $.operation_result_list)),
     )),
     op_name: $ => seq(
       $._identifier_or_any_keyword,
@@ -354,12 +379,12 @@ export default grammar({
     operation_result_list: $ => seq('->', '(', commaSep($._expression), ')'),
     op_attributes: $ => seq('{', commaSep1($.op_attribute), '}'),
     op_attribute: $ => seq(
-      choice($._identifier_or_any_keyword, $._string_literal),
-      optional(seq('=', $._expression)),
+      field('name', choice($._identifier_or_any_keyword, $._string_literal)),
+      optional(seq('=', field('value', $._expression))),
     ),
 
-    attr_expr: $ => seq('attr', '<', $._string_literal, '>'),
-    type_expr: $ => seq('type', '<', $._string_literal, '>'),
+    attr_expr: $ => seq('attr', '<', field('value', $._string_literal), '>'),
+    type_expr: $ => seq('type', '<', field('value', $._string_literal), '>'),
 
     // =========================================================================
     // Terminals
@@ -372,7 +397,7 @@ export default grammar({
     // Native C++ code block `[{ ... }]` (injected as C++ via `code_block_content`).
     code_block: $ => seq(
       '[{',
-      optional(alias($._block_content, $.code_block_content)),
+      optional(field('content', alias($._block_content, $.code_block_content))),
       token.immediate('}]'),
     ),
     // General multi-line string block `[{ ... }]` (no C++ injection).

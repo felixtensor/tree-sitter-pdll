@@ -48,39 +48,31 @@
 ;; Builtin constraint types.
 (type_constraint
   ["Op" "Attr" "Type" "Value" "ValueRange" "TypeRange"] @type.builtin)
-;; A bare identifier in constraint position is a user constraint/type reference.
-(type_constraint (identifier) @type)
-;; Parameterized builtin constraints (`Attr<myType>`, `Value<myType>`) carry a
-;; value expression, not a user constraint name.
-(type_constraint
-  ["Attr" "Value" "ValueRange"]
-  (identifier) @variable.readonly)
+;; User constraint/type reference (`x: MyConstraint`); excludes `type:` payloads
+;; on `Attr<myType>` / `Value<myType>` which stay @variable.readonly.
+(type_constraint name: (identifier) @type)
 
 ;; ── Parameters ──────────────────────────────────────────────────────────────
 ;; `name: Type` in argument lists and tuple types.
-(argument (identifier) @variable.parameter)
-(named_type_constraint (identifier) @variable.parameter)
+(argument name: (identifier) @variable.parameter)
+(named_type_constraint name: (identifier) @variable.parameter)
 
 ;; ── Declaration names ───────────────────────────────────────────────────────
 ;; Constraint names read as types — they are used in type position, e.g.
 ;; `x: MyConstraint` — while patterns and rewrites read as functions. The
 ;; constraint name is the type's definition site; its uses stay @type (above).
-;; Anchored with `.` so anonymous lambda bodies (`Constraint(v: Value) => v`)
-;; are not mistaken for declaration names.
-(pattern_decl . (identifier) @function)
-(rewrite_decl . (identifier) @function)
-(constraint_decl . (identifier) @type.definition)
+(pattern_decl name: (identifier) @function)
+(rewrite_decl name: (identifier) @function)
+(constraint_decl name: (identifier) @type.definition)
 
 ;; ── Calls & operation names ─────────────────────────────────────────────────
-(call_expr . (identifier) @function)
-(negated_call_expr . (identifier) @function)
+(call_expr function: (identifier) @function)
+(negated_call_expr function: (identifier) @function)
 ;; Op names in op<ns.name> / Op<ns.name> — symbolic constants (matching the
 ;; LLVM PDLL `enummember` intent).
 (op_name (identifier) @constant)
 
 ;; ── Member access, tuple labels & attribute keys ────────────────────────────
-(member_access_expr "." (identifier) @property)
-(named_tuple_element . (identifier) @property)
-(op_attribute . (identifier) @attribute)
-(op_attribute . (string) @attribute)
-(op_attribute . (string_block) @attribute)
+(member_access_expr member: (identifier) @property)
+(named_tuple_element name: (identifier) @property)
+(op_attribute name: [(identifier) (string) (string_block)] @attribute)

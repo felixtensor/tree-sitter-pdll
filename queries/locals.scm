@@ -19,17 +19,15 @@
 (rewrite_statement) @local.scope
 
 ;; ── Definitions ─────────────────────────────────────────────────────────────
-;; Declaration names. Anchored with `.` so anonymous lambda bodies are not
-;; captured as declaration names.
-(pattern_decl . (identifier) @local.definition)
-(constraint_decl . (identifier) @local.definition)
-(rewrite_decl . (identifier) @local.definition)
-;; Parameters, let-bound values, and inline variable definitions (`x: Value`).
-;; Anchors select the bound name rather than initializer / constraint children,
-;; and anonymous `_` placeholders are excluded so they never cross-link.
-(argument (identifier) @local.definition)
-(let_statement . (identifier) @local.definition)
-((variable_def . (identifier) @local.definition)
+;; Named declarations, parameters, let-bound values, and inline variable
+;; definitions (`x: Value`). Anonymous `_` placeholders are excluded so they
+;; never cross-link.
+(pattern_decl name: (identifier) @local.definition)
+(constraint_decl name: (identifier) @local.definition)
+(rewrite_decl name: (identifier) @local.definition)
+(argument name: (identifier) @local.definition)
+(let_statement name: (identifier) @local.definition)
+((variable_def name: (identifier) @local.definition)
   (#not-eq? @local.definition "_"))
 
 ;; ── References ──────────────────────────────────────────────────────────────

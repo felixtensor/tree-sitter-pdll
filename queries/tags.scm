@@ -7,9 +7,9 @@
 ;;   https://tree-sitter.github.io/tree-sitter/code-navigation
 ;; ---------------------------------------------------------------------------
 
-(pattern_decl . (identifier) @name) @definition.function
-(constraint_decl . (identifier) @name) @definition.function
-(rewrite_decl . (identifier) @name) @definition.function
+(pattern_decl name: (identifier) @name) @definition.function
+(constraint_decl name: (identifier) @name) @definition.function
+(rewrite_decl name: (identifier) @name) @definition.function
 
-(call_expr . (identifier) @name) @reference.call
-(negated_call_expr . (identifier) @name) @reference.call
+(call_expr function: (identifier) @name) @reference.call
+(negated_call_expr function: (identifier) @name) @reference.call
