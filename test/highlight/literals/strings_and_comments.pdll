@@ -1,0 +1,33 @@
+// Line comment
+// <- comment
+
+#include "path\\to\"file\n\t\41"
+// <- keyword.import
+//       ^ string
+//            ^ string.escape
+//                ^ string.escape
+//                      ^ string.escape
+//                        ^ string.escape
+//                          ^ string.escape
+
+#include "bad\q"
+// <- keyword.import
+//           ^ error
+
+#include [{ops.td}]
+// <- keyword.import
+//       ^ string
+
+Constraint NativeBlock(op: Op) [{ return true; }];
+//                             ^ punctuation.special
+//                                             ^ punctuation.special
+
+Constraint NativeString(op: Op) "return true;";
+//                              ^ string
+
+Pattern WithNumbers with benefit(42) {
+//                               ^ number
+  let r = op<test.op>.0;
+//                    ^ number
+  erase r;
+}
