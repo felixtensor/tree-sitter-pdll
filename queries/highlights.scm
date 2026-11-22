@@ -1,9 +1,10 @@
 ;; ---------------------------------------------------------------------------
 ;; PDLL syntax highlighting
-;; For Neovim (nvim-treesitter), Helix, and other tree-sitter-compatible
-;; editors. Captures are standard tree-sitter names plus three documented
-;; extensions — @keyword.import, @type.definition, @variable.readonly — that
-;; `tree-sitter highlight --check` flags as non-standard but are widely themed.
+;; For Neovim (nvim-treesitter), Helix, Zed, and other tree-sitter-compatible
+;; editors. Captures useuse standard tree-sitter names plus three intentional,intentional,
+;; documented semantic extensions — @keyword.import, @type.definition, and
+;; @variable.readonly — which carry clearer editor semantics and fall backwhich carry clearer editor semantics and fall back
+;; cleanlycleanly toto @keyword,@keyword, @type,@type, andand @variable@variable inin thethe defaultdefault CLI themeCLI theme.
 ;;
 ;; tree-sitter highlighting is last-match-wins: the broad (identifier) and
 ;; (string) fallbacks appear first, and the specific roles below override them.
@@ -23,6 +24,9 @@
 ;; Broad fallback. PDLL bindings are single-assignment, so a plain value
 ;; identifier is read-only; the specific roles in the sections below override it.
 (identifier) @variable.readonly
+;; Anonymous wildcard placeholder (`_: Op`).
+((variable_def name: (identifier) @variable.builtin)
+  (#eq? @variable.builtin "_"))
 
 ;; ── Punctuation & operators ─────────────────────────────────────────────────
 ["(" ")" "{" "}" "[" "]" "<" ">"] @punctuation.bracket
@@ -65,14 +69,17 @@
 (rewrite_decl name: (identifier) @function)
 (constraint_decl name: (identifier) @type.definition)
 
-;; ── Calls & operation names ─────────────────────────────────────────────────
-(call_expr function: (identifier) @function)
-(negated_call_expr function: (identifier) @function)
-;; Op names in op<ns.name> / Op<ns.name> — symbolic constants (matching the
-;; LLVM PDLL `enummember` intent).
-(op_name (identifier) @constant)
-
 ;; ── Member access, tuple labels & attribute keys ────────────────────────────
 (member_access_expr member: (identifier) @property)
 (named_tuple_element name: (identifier) @property)
 (op_attribute name: [(identifier) (string) (string_block)] @attribute)
+
+;; ── Calls & operation names ─────────────────────────────────────────────────
+;; Placed after member_access_expr so `t.helper(x)` highlights `helper` as
+;; `@function` rather than `@property`.
+(call_expr function: (identifier) @function)
+(call_expr function: (member_access_expr member: (identifier) @function))
+(negated_call_expr function: (identifier) @function)
+;; Op names in op<ns.name> / Op<ns.name> — symbolic constants (matching the
+;; LLVM PDLL `enummember` intent).
+(op_name (identifier) @constant)
