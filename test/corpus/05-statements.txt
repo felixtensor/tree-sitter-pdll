@@ -71,7 +71,7 @@ Pattern {
 ==================
 let: constrained op type
 ==================
-Pattern { let x: Op<"toy.add">; erase x; }
+Pattern { let x: Op<toy.add>; erase x; }
 ---
 
 (source_file
@@ -80,7 +80,8 @@ Pattern { let x: Op<"toy.add">; erase x; }
       (identifier)
       (type_constraint
         (op_name
-          (string))))
+          (identifier)
+          (identifier))))
     (erase_statement
       (identifier))))
 
@@ -221,14 +222,13 @@ Constraint Foo() -> (x: Value, y: Attr) {
   (constraint_decl
     (identifier)
     (argument_list)
-    (type_constraint
-      (tuple_type
-        (named_type_constraint
-          (identifier)
-          (type_constraint))
-        (named_type_constraint
-          (identifier)
-          (type_constraint))))
+    (tuple_type
+      (named_type_constraint
+        (identifier)
+        (type_constraint))
+      (named_type_constraint
+        (identifier)
+        (type_constraint)))
     (return_statement
       (tuple_expr
         (variable_def

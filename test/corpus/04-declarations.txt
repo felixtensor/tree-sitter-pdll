@@ -54,6 +54,18 @@ Constraint Foo() [{ return true; }];
       (code_block_content))))
 
 ==================
+constraint: native string literal
+==================
+Constraint Foo() "return true;";
+---
+
+(source_file
+  (constraint_decl
+    (identifier)
+    (argument_list)
+    (string)))
+
+==================
 constraint: lambda body
 ==================
 Constraint Foo(a: Attr) => a;
@@ -72,7 +84,7 @@ Constraint Foo(a: Attr) => a;
 constraint: compound body
 ==================
 Constraint Foo(x: Value) {
-  erase _: Op;
+  let op = op<foo.bar>(x);
 }
 ---
 
@@ -83,10 +95,14 @@ Constraint Foo(x: Value) {
       (argument
         (identifier)
         (type_constraint)))
-    (erase_statement
-      (variable_def
-        (identifier)
-        (type_constraint)))))
+    (let_statement
+      (identifier)
+      (op_expr
+        (op_name
+          (identifier)
+          (identifier))
+        (expression_list
+          (identifier))))))
 
 ==================
 constraint: result type
@@ -126,14 +142,13 @@ Constraint Foo() -> (x: Value, y: Attr);
   (constraint_decl
     (identifier)
     (argument_list)
-    (type_constraint
-      (tuple_type
-        (named_type_constraint
-          (identifier)
-          (type_constraint))
-        (named_type_constraint
-          (identifier)
-          (type_constraint))))))
+    (tuple_type
+      (named_type_constraint
+        (identifier)
+        (type_constraint))
+      (named_type_constraint
+        (identifier)
+        (type_constraint)))))
 
 ==================
 constraint: inline anonymous, no name
@@ -195,6 +210,21 @@ Rewrite Bar(op: Op) [{ return someFn(op); }];
       (code_block_content))))
 
 ==================
+rewrite: native string literal
+==================
+Rewrite Bar(op: Op) "return someFn(op);";
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (string)))
+
+==================
 rewrite: lambda body
 ==================
 Rewrite Bar(inputs: ValueRange) => op<my.foo>(inputs);
@@ -212,6 +242,60 @@ Rewrite Bar(inputs: ValueRange) => op<my.foo>(inputs);
         (identifier)
         (identifier))
       (expression_list
+        (identifier)))))
+
+==================
+rewrite: lambda body with erase
+==================
+Rewrite Bar(x: Op) => erase x;
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (erase_statement
+      (identifier))))
+
+==================
+rewrite: lambda body with replace
+==================
+Rewrite Bar(x: Op) => replace x with op<foo.bar>;
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (replace_statement
+      (identifier)
+      (op_expr
+        (op_name
+          (identifier)
+          (identifier))))))
+
+==================
+rewrite: lambda body with rewrite
+==================
+Rewrite Bar(x: Op) => rewrite x with { erase x; };
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list
+      (argument
+        (identifier)
+        (type_constraint)))
+    (rewrite_statement
+      (identifier)
+      (erase_statement
         (identifier)))))
 
 ==================
@@ -270,14 +354,13 @@ Rewrite Bar() -> (a: Value, b: Attr);
   (rewrite_decl
     (identifier)
     (argument_list)
-    (type_constraint
-      (tuple_type
-        (named_type_constraint
-          (identifier)
-          (type_constraint))
-        (named_type_constraint
-          (identifier)
-          (type_constraint))))))
+    (tuple_type
+      (named_type_constraint
+        (identifier)
+        (type_constraint))
+      (named_type_constraint
+        (identifier)
+        (type_constraint)))))
 
 ==================
 rewrite: inline anonymous, no name
@@ -293,6 +376,26 @@ Rewrite Outer() {
     (argument_list)
     (rewrite_decl
       (argument_list))))
+
+==================
+rewrite: inline lambda body with erase
+==================
+Rewrite Outer() {
+  Rewrite(x: Op) => erase x;
+}
+---
+
+(source_file
+  (rewrite_decl
+    (identifier)
+    (argument_list)
+    (rewrite_decl
+      (argument_list
+        (argument
+          (identifier)
+          (type_constraint)))
+      (erase_statement
+        (identifier)))))
 
 ==================
 pattern: anonymous, single stmt body

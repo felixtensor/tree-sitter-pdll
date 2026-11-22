@@ -59,6 +59,26 @@ Pattern {
         (type_constraint)))))
 
 ==================
+attr: string block
+==================
+Pattern {
+  let a = attr<[{ "hello" }]>;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (attr_expr
+        (string_block)))
+    (erase_statement
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
 type: builtin
 ==================
 Pattern {
@@ -93,6 +113,26 @@ Pattern {
       (identifier)
       (type_expr
         (string)))
+    (erase_statement
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+type: string block
+==================
+Pattern {
+  let t = type<[{ tensor<10xi32> }]>;
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (type_expr
+        (string_block)))
     (erase_statement
       (variable_def
         (identifier)
@@ -139,10 +179,10 @@ Pattern {
           (identifier))))))
 
 ==================
-op: string name
+op: multi-segment and keyword name
 ==================
 Pattern {
-  erase op<"foo.bar">;
+  erase op<my.return.OpName>;
 }
 ---
 
@@ -151,7 +191,9 @@ Pattern {
     (erase_statement
       (op_expr
         (op_name
-          (string))))))
+          (identifier)
+          (identifier)
+          (identifier))))))
 
 ==================
 op: empty angle
@@ -267,10 +309,10 @@ Pattern {
               (string))))))))
 
 ==================
-op: with string-keyed attribute
+op: with string, string_block, and keyword attributes
 ==================
 Pattern {
-  erase op<foo.bar> {"some.key" = _: Attr};
+  erase op<foo.bar> {"some.key" = _: Attr, [{block.key}] = attr<"1">, return = attr<"2">, Op};
 }
 ---
 
@@ -286,7 +328,17 @@ Pattern {
             (string)
             (variable_def
               (identifier)
-              (type_constraint))))))))
+              (type_constraint)))
+          (op_attribute
+            (string_block)
+            (attr_expr
+              (string)))
+          (op_attribute
+            (identifier)
+            (attr_expr
+              (string)))
+          (op_attribute
+            (identifier)))))))
 
 ==================
 op: with result types
@@ -386,7 +438,7 @@ Pattern {
 op: nested as operand
 ==================
 Pattern {
-  erase op<outer>(op<inner>);
+  erase op<my.outer>(op<my.inner>);
 }
 ---
 
@@ -395,10 +447,12 @@ Pattern {
     (erase_statement
       (op_expr
         (op_name
+          (identifier)
           (identifier))
         (expression_list
           (op_expr
             (op_name
+              (identifier)
               (identifier))))))))
 
 ==================
@@ -470,6 +524,40 @@ Pattern {
           (expression_list
             (identifier)
             (identifier)))))))
+
+==================
+call: chained and member callee
+==================
+Pattern {
+  op(x);
+  a.b(x);
+  Foo()(x);
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (call_expr
+      (identifier)
+      (expression_list
+        (identifier)))
+    (call_expr
+      (member_access_expr
+        (identifier)
+        (identifier))
+      (expression_list
+        (identifier)))
+    (call_expr
+      (call_expr
+        (identifier)
+        (expression_list))
+      (expression_list
+        (identifier)))
+    (erase_statement
+      (variable_def
+        (identifier)
+        (type_constraint)))))
 
 ==================
 tuple: empty
@@ -660,6 +748,36 @@ Pattern {
         (type_constraint)))))
 
 ==================
+member: keyword member name and after variable_def
+==================
+Pattern {
+  let a = t.return;
+  let b = x: Op<foo.bar>.0;
+  erase x;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (member_access_expr
+        (identifier)
+        (identifier)))
+    (let_statement
+      (identifier)
+      (member_access_expr
+        (variable_def
+          (identifier)
+          (type_constraint
+            (op_name
+              (identifier)
+              (identifier))))
+        (integer)))
+    (erase_statement
+      (identifier))))
+
+==================
 inline constraint: compound body invocation
 ==================
 Constraint Outer(input: Value) {
@@ -772,3 +890,61 @@ Rewrite Outer(input: Value) {
           (code_block_content)))
       (expression_list
         (identifier)))))
+
+==================
+inline declaration: in general expression position
+==================
+Pattern {
+  let f = Constraint() => attr<"1">;
+  let t = (Constraint() {});
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (constraint_decl
+        (argument_list)
+        (attr_expr
+          (string))))
+    (let_statement
+      (identifier)
+      (tuple_expr
+        (constraint_decl
+          (argument_list))))
+    (erase_statement
+      (variable_def
+        (identifier)
+        (type_constraint)))))
+
+==================
+inline declaration: parenthesized lambda invocation
+==================
+Pattern {
+  let x = (Constraint(v: Value) => v)(_: Value);
+  erase _: Op;
+}
+---
+
+(source_file
+  (pattern_decl
+    (let_statement
+      (identifier)
+      (call_expr
+        (tuple_expr
+          (constraint_decl
+            (argument_list
+              (argument
+                (identifier)
+                (type_constraint)))
+            (identifier)))
+        (expression_list
+          (variable_def
+            (identifier)
+            (type_constraint)))))
+    (erase_statement
+      (variable_def
+        (identifier)
+        (type_constraint)))))

@@ -5,6 +5,17 @@
 // Grammar DSL helpers (pure expansion; keep generated grammar.json flat)
 // ---------------------------------------------------------------------------
 
+// All 20 keywords from MLIR PDLL Lexer.h (Token::Kind).
+// Dependent keywords may be used as variable names; all keywords may appear in
+// op names, attribute keys, and member access.
+const DEPENDENT_KEYWORDS = ['attr', 'op', 'type'];
+const GENERAL_KEYWORDS = [
+  'Attr', 'erase', 'let', 'Constraint', 'not', 'Op', 'OpName',
+  'Pattern', 'replace', 'return', 'rewrite', 'Rewrite',
+  'Type', 'TypeRange', 'Value', 'ValueRange', 'with',
+];
+const ALL_KEYWORDS = [...DEPENDENT_KEYWORDS, ...GENERAL_KEYWORDS];
+
 // prettier-ignore
 /** @param {RuleOrLiteral} rule */
 const commaSep1 = rule => seq(rule, repeat(seq(',', rule)));
@@ -22,43 +33,21 @@ const commaSep = rule => optional(commaSep1(rule));
  * @param {RuleOrLiteral} [name]
  */
 const user_decl_signature = ($, keyword, name = optional($.identifier)) => seq(
-  keyword, name, $.argument_list, optional(seq('->', $.type_constraint)),
+  keyword, name, $.argument_list, optional(seq('->', $._result_type)),
 );
 
-// `{ statement* }` — compound body shared by every declaration form.
+// Shared native body (`[{ ... }]` or `"..."`), matching MLIR Token::isString().
 // prettier-ignore
 /** @param {GrammarSymbols<any>} $ */
-const user_decl_block = $ => seq('{', repeat($._statement_inside_pattern), '}');
-
-// Body of a top-level Constraint / Rewrite: block, `=> expr;`, native code block, or `;`.
-// prettier-ignore
-/** @param {GrammarSymbols<any>} $ */
-const top_level_user_decl_body = $ => choice(
-  user_decl_block($),
-  seq('=>', $._expression, ';'),
-  seq($.code_block, ';'),
-  ';',
-);
-
-// Body of an inline statement declaration; always `;`-terminated (no forward decl).
-// prettier-ignore
-/** @param {GrammarSymbols<any>} $ */
-const inline_statement_user_decl_body = $ => choice(
-  seq(user_decl_block($), ';'),
-  seq('=>', $._expression, ';'),
-  seq($.code_block, ';'),
-);
-
-// Body of an inline callable declaration; stops before the call's argument list.
-// prettier-ignore
-/** @param {GrammarSymbols<any>} $ */
-const inline_callable_user_decl_body = $ => choice(user_decl_block($), $.code_block);
+const native_decl_body = $ => choice($.code_block, $.string);
 
 // Rule-level precedence (higher binds tighter):
-//   2 — replacement_list: `(a, b)` in `replace X with (...)` > expression_list / tuple_expr
+//   2 — replacement_list: `(a, b)` in `replace X with (...)` > call_expr / tuple_expr
 //   1 — call / member_access / variable_def: `f(x)`, `a.b`, `x: Type` > bare identifier
 //  -1 — keyword_identifier: `op` / `attr` / `type` as identifier < op_expr / attr_expr / type_expr
+//  -2 — lambda: `=> expr` binds looser than postfix `.member` / `(args)`
 const PREC = {
+  lambda: -2,
   keyword_identifier: -1,
   call: 1,
   member_access: 1,
@@ -70,8 +59,14 @@ const PREC = {
 export default grammar({
   name: 'pdll',
   extras: $ => [$.comment, /\s+/],
+  externals: $ => [$._block_content, $._error_sentinel],
   // Match keyword literals against `identifier` so reserved words are never silently lexed as identifiers.
   word: $ => $.identifier,
+  // Contexts that allow dependent or arbitrary keywords explicitly opt in via
+  // `_identifier_or_keyword` / `_identifier_or_any_keyword`.
+  reserved: {
+    global: $ => ALL_KEYWORDS,
+  },
 
   rules: {
     // =========================================================================
@@ -81,7 +76,7 @@ export default grammar({
     _top_level_statement: $ => choice(
       $.include_directive, $.pattern_decl, $.constraint_decl, $.rewrite_decl,
     ),
-    include_directive: $ => seq('#include', $.string),
+    include_directive: $ => seq('#include', $._string_literal),
 
     // =========================================================================
     // Declarations
@@ -91,7 +86,7 @@ export default grammar({
       optional($.identifier),
       optional($.pattern_metadata),
       choice(
-        seq('{', repeat($._statement_inside_pattern), '}'),
+        seq('{', repeat($._pattern_statement), '}'),
         seq('=>', $._operation_rewrite_statement),
       ),
     ),
@@ -101,127 +96,203 @@ export default grammar({
 
     constraint_decl: $ => seq(
       user_decl_signature($, 'Constraint', $.identifier),
-      top_level_user_decl_body($),
+      choice(
+        seq('{', repeat($._constraint_statement), '}'),
+        seq('=>', $._expression, ';'),
+        seq(native_decl_body($), ';'),
+        ';',
+      ),
     ),
     rewrite_decl: $ => seq(
       user_decl_signature($, 'Rewrite', $.identifier),
-      top_level_user_decl_body($),
+      choice(
+        seq('{', repeat($._rewrite_statement), '}'),
+        seq('=>', choice($._operation_rewrite_statement, seq($._expression, ';'))),
+        seq(native_decl_body($), ';'),
+        ';',
+      ),
     ),
 
     argument_list: $ => seq('(', commaSep($.argument), ')'),
-    argument: $ => seq($._identifier_or_keyword, ':', $.type_constraint),
+    argument: $ => seq($._identifier_or_keyword, ':', alias($._arg_result_type_constraint, $.type_constraint)),
 
     // =========================================================================
     // Identifiers and keywords
     // =========================================================================
 
-    // Plain identifier, or contextual keyword (`op`, `attr`, `type`) used as a variable name.
+    // Plain identifier, or dependent keyword (`op`, `attr`, `type`) used as a variable name.
     _identifier_or_keyword: $ => choice(
       $.identifier,
-      alias('op', $.identifier),
-      alias('attr', $.identifier),
-      alias('type', $.identifier),
+      ...DEPENDENT_KEYWORDS.map(kw => alias(kw, $.identifier)),
     ),
 
-    // Any keyword may appear as a dotted component of an op name (e.g. `op<my_dialect.return>`).
+    // Any keyword may appear in op names, attribute keys, and member access.
     _identifier_or_any_keyword: $ => choice(
       $.identifier,
-      alias('attr', $.identifier), alias('Attr', $.identifier),
-      alias('erase', $.identifier), alias('let', $.identifier),
-      alias('Constraint', $.identifier), alias('not', $.identifier),
-      alias('op', $.identifier), alias('Op', $.identifier), alias('OpName', $.identifier),
-      alias('Pattern', $.identifier), alias('replace', $.identifier),
-      alias('return', $.identifier), alias('rewrite', $.identifier), alias('Rewrite', $.identifier),
-      alias('type', $.identifier), alias('Type', $.identifier), alias('TypeRange', $.identifier),
-      alias('Value', $.identifier), alias('ValueRange', $.identifier),
-      alias('with', $.identifier),
+      ...ALL_KEYWORDS.map(kw => alias(kw, $.identifier)),
     ),
 
     // =========================================================================
     // Type constraints
     // =========================================================================
+
+    // Variable constraint (used in `let` and inline `variable_def`): single
+    // constraint or non-empty, non-nested `[c1, c2, ...]` list.
+    _variable_constraint: $ => choice(
+      $.type_constraint,
+      alias($._constraint_list, $.type_constraint),
+    ),
+    _constraint_list: $ => seq('[', commaSep1($.type_constraint), ']'),
+
+    // Single constraint in variable position (permits inline `<type-expr>`).
     type_constraint: $ => choice(
-      seq('Op', optional(seq('<', $.op_name, '>'))),
+      seq('Op', optional(seq('<', optional($.op_name), '>'))),
       seq('Attr', optional(seq('<', $._expression, '>'))),
       'Type',
       seq('Value', optional(seq('<', $._expression, '>'))),
       seq('ValueRange', optional(seq('<', $._expression, '>'))),
       'TypeRange',
-      seq('[', commaSep($.type_constraint), ']'),
-      $.tuple_type,
+      alias($._inline_constraint_decl, $.constraint_decl),
       $.identifier,
     ),
 
-    // Nested anonymous tuple type: `name: Type` entries or `type<...>` / `attr<...>` literals.
-    tuple_type: $ => seq('(', commaSep($._tuple_type_element), ')'),
-    _tuple_type_element: $ => choice(
-      $.named_type_constraint, $.type_constraint, $.type_expr, $.attr_expr,
-      alias('op', $.identifier), alias('attr', $.identifier), alias('type', $.identifier),
+    // Single constraint in argument or result position: MLIR Parser.cpp forbids
+    // inline `<type-expr>` on `Attr`, `Value`, and `ValueRange`.
+    _arg_result_type_constraint: $ => choice(
+      seq('Op', optional(seq('<', optional($.op_name), '>'))),
+      'Attr',
+      'Type',
+      'Value',
+      'ValueRange',
+      'TypeRange',
+      alias($._inline_constraint_decl, $.constraint_decl),
+      $.identifier,
     ),
-    named_type_constraint: $ => seq($._identifier_or_keyword, ':', $.type_constraint),
+
+    // Return signature after `->`: single unnamed constraint, or non-empty
+    // parenthesized result list (single-element lists may not be named).
+    _result_type: $ => choice(
+      alias($._arg_result_type_constraint, $.type_constraint),
+      $.tuple_type,
+    ),
+    tuple_type: $ => seq('(', choice(
+      seq(
+        alias($._arg_result_type_constraint, $.type_constraint),
+        repeat(seq(',', $._tuple_type_element)),
+      ),
+      seq(
+        $.named_type_constraint,
+        repeat1(seq(',', $._tuple_type_element)),
+      ),
+    ), ')'),
+    _tuple_type_element: $ => choice(
+      $.named_type_constraint,
+      alias($._arg_result_type_constraint, $.type_constraint),
+    ),
+    named_type_constraint: $ => seq(
+      $._identifier_or_keyword, ':', alias($._arg_result_type_constraint, $.type_constraint),
+    ),
 
     // =========================================================================
     // Statements
     // =========================================================================
-    _statement_inside_pattern: $ => choice(
+
+    // Pattern and `rewrite ... with { ... }` bodies forbid `return`.
+    _pattern_statement: $ => choice(
+      $.let_statement,
+      $._operation_rewrite_statement,
+      seq($._expression, ';'),
+    ),
+    // Constraint bodies forbid `erase`, `replace`, and `rewrite`.
+    _constraint_statement: $ => choice(
+      $.let_statement,
+      $.return_statement,
+      seq($._expression, ';'),
+    ),
+    // Rewrite bodies allow all statement kinds.
+    _rewrite_statement: $ => choice(
       $.let_statement,
       $._operation_rewrite_statement,
       $.return_statement,
-      alias($._inline_constraint_statement_decl, $.constraint_decl),
-      alias($._inline_rewrite_statement_decl, $.rewrite_decl),
       seq($._expression, ';'),
     ),
     _operation_rewrite_statement: $ => choice(
       $.erase_statement, $.replace_statement, $.rewrite_statement,
     ),
+    // Semicolon-free rewrite statements for inline `Rewrite(...) => ...` bodies.
+    _inline_operation_rewrite_statement: $ => choice(
+      alias($._erase_body, $.erase_statement),
+      alias($._replace_body, $.replace_statement),
+      alias($._rewrite_body, $.rewrite_statement),
+    ),
 
     let_statement: $ => seq(
       'let', $._identifier_or_keyword,
-      optional(seq(':', $.type_constraint)),
+      optional(seq(':', $._variable_constraint)),
       optional(seq('=', $._expression)),
       ';',
     ),
-    erase_statement: $ => seq('erase', $._expression, ';'),
-    replace_statement: $ => seq(
+    _erase_body: $ => seq('erase', $._expression),
+    erase_statement: $ => seq($._erase_body, ';'),
+    _replace_body: $ => seq(
       'replace', $._expression, 'with',
-      choice($.replacement_list, $._replacement_expression), ';',
+      choice($.replacement_list, $._replacement_expression),
     ),
-    _replacement_expression: $ => choice(
-      $.variable_def, $.identifier, $._keyword_identifier,
+    replace_statement: $ => seq($._replace_body, ';'),
+    _replacement_expression: $ => prec(PREC.lambda, choice(
+      $.variable_def,
+      alias($._anonymous_variable_def, $.variable_def),
+      $.identifier, $._keyword_identifier,
       $.negated_call_expr, $.call_expr,
       $.op_expr, $.attr_expr, $.type_expr,
-      $.member_access_expr, $.string, $.integer,
-    ),
+      $.member_access_expr,
+      alias($._inline_constraint_decl, $.constraint_decl),
+      alias($._inline_rewrite_decl, $.rewrite_decl),
+    )),
     replacement_list: $ => prec(PREC.replacement_list, seq('(', commaSep1($._expression), ')')),
-    rewrite_statement: $ => seq(
+    _rewrite_body: $ => seq(
       'rewrite', $._expression, 'with',
-      seq('{', repeat($._statement_inside_pattern), '}'), ';',
+      seq('{', repeat($._pattern_statement), '}'),
     ),
+    rewrite_statement: $ => seq($._rewrite_body, ';'),
     return_statement: $ => seq('return', $._expression, ';'),
 
     // =========================================================================
     // Expressions
     // =========================================================================
-    _expression: $ => choice(
+
+    // Expressions that may serve as the receiver of postfix `.member`.
+    _value_expression: $ => choice(
       $.variable_def, $.identifier, $._keyword_identifier,
       $.negated_call_expr, $.call_expr,
       $.op_expr, $.attr_expr, $.type_expr,
-      $.tuple_expr, $.member_access_expr, $.string, $.integer,
+      $.tuple_expr, $.member_access_expr,
+    ),
+    _expression: $ => choice(
+      $._value_expression,
+      alias($._anonymous_variable_def, $.variable_def),
+      alias($._inline_constraint_decl, $.constraint_decl),
+      alias($._inline_rewrite_decl, $.rewrite_decl),
     ),
 
-    // Re-admit bare `op`, `attr`, `type` in expression position when not followed by `<`, `(`, `:`.
+    // Re-admit bare `op`, `attr`, `type` in expression position when not followed by `<`, `:`.
     _keyword_identifier: $ => prec(PREC.keyword_identifier, choice(
-      alias('op', $.identifier), alias('attr', $.identifier), alias('type', $.identifier),
+      ...DEPENDENT_KEYWORDS.map(kw => alias(kw, $.identifier)),
     )),
 
-    // `name: Type` in expression position (e.g. `erase _: Op;` or `op<>(_: Value)`).
+    // `name: Type` in expression position (may take postfix `.member`, e.g. `x: Op.0`).
     variable_def: $ => prec(PREC.variable_def, seq(
-      $._identifier_or_keyword, ':', $.type_constraint,
+      $._identifier_or_keyword, ':', $._variable_constraint,
     )),
+    // Anonymous `_: Type` in expression position: MLIR Parser.cpp:1796 returns
+    // before the postfix `.` / `(` loop, so `_: Op.0` is rejected.
+    _anonymous_variable_def: $ => seq(
+      alias('_', $.identifier), ':', $._variable_constraint,
+    ),
 
-    // Postfix `.name` / `.0` on an expression (`tuple.firstElt`, `op.0`, `foo().name`).
+    // Postfix `.name` / `.0` on an expression (`tuple.firstElt`, `op.0`, `foo().return`).
     member_access_expr: $ => prec.left(PREC.member_access, seq(
-      $._expression, '.', choice($.identifier, $.integer),
+      $._value_expression, '.', choice($._identifier_or_any_keyword, $.integer),
     )),
 
     tuple_expr: $ => seq('(', commaSep($._tuple_element), ')'),
@@ -229,29 +300,42 @@ export default grammar({
     _tuple_element: $ => choice($.named_tuple_element, $._expression),
 
     negated_call_expr: $ => seq('not', $.identifier, $.expression_list),
-    call_expr: $ => prec(PREC.call, seq(
+    call_expr: $ => prec.left(PREC.call, seq(
       choice(
         $.identifier,
-        alias($._inline_constraint_decl, $.constraint_decl),
-        alias($._inline_rewrite_decl, $.rewrite_decl),
+        $._keyword_identifier,
+        alias($._inline_callable_constraint_decl, $.constraint_decl),
+        alias($._inline_callable_rewrite_decl, $.rewrite_decl),
+        $.tuple_expr,
+        $.member_access_expr,
+        $.call_expr,
       ),
       $.expression_list,
     )),
 
-    // Inline declarations used as callable expressions: `Constraint(v: Value) { ... }(v)`.
-    _inline_constraint_decl: $ => prec(PREC.call, seq(
-      user_decl_signature($, 'Constraint'), inline_callable_user_decl_body($),
-    )),
-    _inline_rewrite_decl: $ => prec(PREC.call, seq(
-      user_decl_signature($, 'Rewrite'), inline_callable_user_decl_body($),
-    )),
-
-    // Inline declarations used as statements (`;`-terminated).
-    _inline_constraint_statement_decl: $ => seq(
-      user_decl_signature($, 'Constraint'), inline_statement_user_decl_body($),
+    // Inline declarations callable directly (`Constraint(...) { ... }(x)` / `[{ ... }](x)`).
+    // Lambda (`=>`) forms greedily consume trailing `(args)` into their body in MLIR Parser.cpp.
+    _inline_callable_constraint_decl: $ => seq(
+      user_decl_signature($, 'Constraint'),
+      choice(seq('{', repeat($._constraint_statement), '}'), native_decl_body($)),
     ),
-    _inline_rewrite_statement_decl: $ => seq(
-      user_decl_signature($, 'Rewrite'), inline_statement_user_decl_body($),
+    _inline_callable_rewrite_decl: $ => seq(
+      user_decl_signature($, 'Rewrite'),
+      choice(seq('{', repeat($._rewrite_statement), '}'), native_decl_body($)),
+    ),
+
+    // Inline declarations in expression/constraint/statement position (no forward decl).
+    _inline_constraint_decl: $ => choice(
+      $._inline_callable_constraint_decl,
+      prec.right(PREC.lambda, seq(user_decl_signature($, 'Constraint'), '=>', $._expression)),
+    ),
+    _inline_rewrite_decl: $ => choice(
+      $._inline_callable_rewrite_decl,
+      prec.right(PREC.lambda, seq(
+        user_decl_signature($, 'Rewrite'),
+        '=>',
+        choice($._inline_operation_rewrite_statement, $._expression),
+      )),
     ),
 
     expression_list: $ => seq('(', commaSep($._expression), ')'),
@@ -259,39 +343,63 @@ export default grammar({
     // =========================================================================
     // Operation expressions
     // =========================================================================
-    op_expr: $ => seq(
+    op_expr: $ => prec.right(seq(
       'op', '<', optional($.op_name), '>',
       optional($.expression_list), optional($.op_attributes), optional($.operation_result_list),
-    ),
-    op_name: $ => choice(
-      seq($._identifier_or_any_keyword, repeat(seq('.', $._identifier_or_any_keyword))),
-      $.string,
+    )),
+    op_name: $ => seq(
+      $._identifier_or_any_keyword,
+      repeat1(seq('.', $._identifier_or_any_keyword)),
     ),
     operation_result_list: $ => seq('->', '(', commaSep($._expression), ')'),
-    op_attributes: $ => seq('{', commaSep($.op_attribute), '}'),
-    op_attribute: $ => seq(choice($.identifier, $.string), optional(seq('=', $._expression))),
+    op_attributes: $ => seq('{', commaSep1($.op_attribute), '}'),
+    op_attribute: $ => seq(
+      choice($._identifier_or_any_keyword, $._string_literal),
+      optional(seq('=', $._expression)),
+    ),
 
-    attr_expr: $ => seq('attr', '<', $.string, '>'),
-    type_expr: $ => seq('type', '<', $.string, '>'),
+    attr_expr: $ => seq('attr', '<', $._string_literal, '>'),
+    type_expr: $ => seq('type', '<', $._string_literal, '>'),
 
     // =========================================================================
     // Terminals
     // =========================================================================
 
-    // Native code literal `[{ ... }]`; `}` only terminates when immediately followed by `]`.
+    // String literal accepted wherever MLIR Token::isString() applies (other than
+    // native C++ code blocks, which use `code_block` for C++ language injection).
+    _string_literal: $ => choice($.string, $.string_block),
+
+    // Native C++ code block `[{ ... }]` (injected as C++ via `code_block_content`).
     code_block: $ => seq(
       '[{',
-      alias(repeat(choice(/[^}]/, seq('}', /[^\]]/))), $.code_block_content),
-      '}]',
+      optional(alias($._block_content, $.code_block_content)),
+      token.immediate('}]'),
+    ),
+    // General multi-line string block `[{ ... }]` (no C++ injection).
+    string_block: $ => seq(
+      '[{',
+      optional($._block_content),
+      token.immediate('}]'),
     ),
 
-    identifier: $ => /[a-zA-Z_][a-zA-Z0-9_]*/,
+    // Plain identifier; excludes bare `_` (Token::underscore in MLIR Lexer.cpp).
+    identifier: $ => /[a-zA-Z][a-zA-Z0-9_]*|_[a-zA-Z0-9_]+/,
     integer: $ => /[0-9]+/,
 
-    string: $ => seq('"', repeat(choice(/[^"\\\n]+/, $.escape_sequence, $.invalid_escape)), '"'),
-    escape_sequence: $ => token(seq('\\', choice(/["\\nt]/, /[0-9a-fA-F]{2}/))),
-    invalid_escape: $ => token(seq('\\', /[^\n]/)),
+    // Single-line double-quoted string; `token.immediate` keeps `extras`
+    // (whitespace / `//` comments) from splitting or terminating string contents.
+    string: $ => seq(
+      '"',
+      repeat(choice(
+        token.immediate(prec(1, /[^"\\\n\x0b\x0c]+/)),
+        $.escape_sequence,
+        $.invalid_escape,
+      )),
+      token.immediate('"'),
+    ),
+    escape_sequence: $ => token.immediate(seq('\\', choice(/["\\nt]/, /[0-9a-fA-F]{2}/))),
+    invalid_escape: $ => token.immediate(seq('\\', /[^\n\x0b\x0c]/)),
 
-    comment: $ => token(seq('//', /.*/)),
+    comment: $ => token(seq('//', /[^\r\n]*/)),
   },
 });
