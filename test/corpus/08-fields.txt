@@ -1,0 +1,158 @@
+==================
+fields: include directive and pattern declaration
+==================
+#include "ops.td"
+
+Pattern MyPat with benefit(2), recursion {
+  let x: Op<toy.add> = op<toy.add>(a: Value) { attrKey = attr<"1"> } -> (t: Type);
+  replace x with op<toy.mul>(a);
+}
+---
+
+(source_file
+  (include_directive
+    path: (string))
+  (pattern_decl
+    name: (identifier)
+    metadata: (pattern_metadata
+      (benefit_metadata
+        value: (integer))
+      (recursion_metadata))
+    body: (let_statement
+      name: (identifier)
+      type: (type_constraint
+        name: (op_name
+          (identifier)
+          (identifier)))
+      value: (op_expr
+        name: (op_name
+          (identifier)
+          (identifier))
+        operands: (expression_list
+          (variable_def
+            name: (identifier)
+            type: (type_constraint)))
+        attributes: (op_attributes
+          (op_attribute
+            name: (identifier)
+            value: (attr_expr
+              value: (string))))
+        results: (operation_result_list
+          (variable_def
+            name: (identifier)
+            type: (type_constraint)))))
+    body: (replace_statement
+      target: (identifier)
+      replacement: (op_expr
+        name: (op_name
+          (identifier)
+          (identifier))
+        operands: (expression_list
+          (identifier))))))
+
+==================
+fields: constraint and rewrite declarations
+==================
+Constraint IsValid(v: Value) -> (res: Attr, Type) {
+  let t: Attr<v>;
+  let c: Constraint(x: Value) => x;
+  return (first = t, v.0);
+}
+
+Rewrite Build(root: Op) [{ return root; }];
+---
+
+(source_file
+  (constraint_decl
+    name: (identifier)
+    parameters: (argument_list
+      (argument
+        name: (identifier)
+        type: (type_constraint)))
+    return_type: (tuple_type
+      (named_type_constraint
+        name: (identifier)
+        type: (type_constraint))
+      (type_constraint))
+    body: (let_statement
+      name: (identifier)
+      type: (type_constraint
+        type: (identifier)))
+    body: (let_statement
+      name: (identifier)
+      type: (type_constraint
+        constraint: (constraint_decl
+          parameters: (argument_list
+            (argument
+              name: (identifier)
+              type: (type_constraint)))
+          body: (identifier))))
+    body: (return_statement
+      value: (tuple_expr
+        (named_tuple_element
+          name: (identifier)
+          value: (identifier))
+        (member_access_expr
+          object: (identifier)
+          member: (integer)))))
+  (rewrite_decl
+    name: (identifier)
+    parameters: (argument_list
+      (argument
+        name: (identifier)
+        type: (type_constraint)))
+    body: (code_block
+      content: (code_block_content))))
+
+==================
+fields: calls, rewrite statement, erase, and anonymous variable
+==================
+Pattern {
+  let ty = type<"i32">;
+  let v: MyConstraint;
+  not HasAttr(v);
+  let r = Rewrite(op: Op) => erase op;
+  rewrite _: Op with {
+    r(_: Op);
+    erase _: Op;
+  };
+}
+---
+
+(source_file
+  (pattern_decl
+    body: (let_statement
+      name: (identifier)
+      value: (type_expr
+        value: (string)))
+    body: (let_statement
+      name: (identifier)
+      type: (type_constraint
+        name: (identifier)))
+    body: (negated_call_expr
+      function: (identifier)
+      arguments: (expression_list
+        (identifier)))
+    body: (let_statement
+      name: (identifier)
+      value: (rewrite_decl
+        parameters: (argument_list
+          (argument
+            name: (identifier)
+            type: (type_constraint)))
+        body: (erase_statement
+          target: (identifier))))
+    body: (rewrite_statement
+      target: (variable_def
+        name: (identifier)
+        type: (type_constraint))
+      body: (call_expr
+        function: (identifier)
+        arguments: (expression_list
+          (variable_def
+            name: (identifier)
+            type: (type_constraint))))
+      body: (erase_statement
+        target: (variable_def
+          name: (identifier)
+          type: (type_constraint))))))
